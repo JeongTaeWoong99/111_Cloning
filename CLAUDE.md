@@ -14,16 +14,16 @@
 
 ## Skills 참조
 
-필요한 작업 시 `Skills/` 폴더에서 해당 스킬 파일을 먼저 확인한다.
+필요한 작업 시 `/` 슬래시 커맨드로 호출하거나, 관련 작업 시 자동 로드된다.
 
-| 파일                           | 내용                |
-|--------------------------------|---------------------|
-| `Skills/commit-convention.md` | Git 커밋 메시지 규칙 |
+| 슬래시 커맨드         | 경로                                              | 내용                |
+|-----------------------|---------------------------------------------------|---------------------|
+| `/commit-convention`  | [`.claude/skills/commit-convention/SKILL.md`](.claude/skills/commit-convention/SKILL.md) | Git 커밋 메시지 규칙 |
 
 ---
 
 ## 주요 규칙
 
-- 커밋 시 반드시 `Skills/commit-convention.md` 규칙을 따른다.
+- 커밋 시 반드시 `/commit-convention` 규칙을 따른다.
 - 에셋 원본 폴더는 `.gitignore`에 등록하여 GitHub 업로드에서 제외한다.
 - 코드는 한글 주석 사용.
