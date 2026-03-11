@@ -3,7 +3,9 @@
     "allow": [
       "WebFetch(domain:github.com)",
       "Bash(gh api:*)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(mkdir -p \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/.claude/references\" && cp \"C:/Users/ASUS/Desktop/2022_WritingCleanerCodeThatScales_EBook-v6-Final.pdf\" \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/.claude/references/2022_WritingCleanerCodeThatScales_EBook-v6-Final.pdf\" && echo \"Done\")",
+      "Bash(mkdir -p \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/.claude/skills/feature-design\" && mkdir -p \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/.claude/skills/optimization\")"
     ]
   }
 }

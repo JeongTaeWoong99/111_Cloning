@@ -38,7 +38,7 @@ ExportedObj/
 *.unityproj
 *.sln
 *.suo
-*.tmp
+*.tm/
 *.user
 *.userprefs
 *.pidb
@@ -73,3 +73,6 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Claude 참고 파일 (로컬 전용, 외부 노출 금지)
+.claude/references/
