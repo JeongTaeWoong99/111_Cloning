@@ -76,3 +76,6 @@ crashlytics-build.properties
 
 # Claude 참고 파일 (로컬 전용, 외부 노출 금지)
 .claude/references/
+
+# 에셋 원본 (외부 공개 금지)
+/[Aa]ssets/Source/
