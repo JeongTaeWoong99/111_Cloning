@@ -221,3 +221,49 @@ public bool ApplyDamage(float damage) { }
 | Flag 파라미터 | `DoSomething(true, false)` | 별도 메서드로 분리 |
 | 매직 넘버 | `if (health < 30f)` | `const float LowHealthThreshold = 30f;` |
 | 중첩 조건문 | 3단계 이상 if 중첩 | 조기 반환(guard clause)으로 평탄화 |
+
+---
+
+## 8. 나의 코드 스타일 (개인 취향)
+
+> 이 프로젝트는 개인 작업이므로, 아래 스타일을 위 규칙과 함께 적용한다.
+> 가독성을 높이기 위한 선택으로, 널리 사용되는 스타일이다.
+
+### 필드 열 정렬 (Column Alignment)
+
+같은 modifier 그룹 내에서 타입명을 공백으로 맞춰 **변수명 열을 정렬**한다.
+
+```csharp
+// Good — 타입명 뒤 공백으로 변수명 열 맞춤
+[SerializeField] private GridPool               _gridPool;
+[SerializeField] private CameraScrollController _cameraScroll;
+[SerializeField] private FloorGrid              _startGrid;
+[SerializeField] private float                  _gridHeight = 10f;
+[SerializeField] private int                    _totalFloors = 10;
+
+private int  _currentFloor = 1;
+private bool _isTransitioning;
+
+// Bad — 열 정렬 없이 나열
+[SerializeField] private GridPool _gridPool;
+[SerializeField] private CameraScrollController _cameraScroll;
+[SerializeField] private float _gridHeight = 10f;
+
+private int _currentFloor = 1;
+private bool _isTransitioning;
+```
+
+**규칙:**
+- 정렬 단위는 **같은 modifier 그룹** (`[SerializeField] private` / `private` / `private readonly` 등)
+- 그룹이 달라지면 정렬 기준 리셋 (빈 줄로 구분)
+- `const`, `readonly` 등 키워드가 다르면 별도 그룹으로 분리
+
+```csharp
+// 그룹별 정렬 예시
+private readonly Dictionary<int, FloorGrid> _floorGridMap = new();
+
+private int  _currentFloor = 1;
+private bool _isTransitioning;
+
+private const int PreloadCount = 2;
+```
