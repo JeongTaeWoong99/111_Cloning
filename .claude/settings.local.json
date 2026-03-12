@@ -5,7 +5,9 @@
       "Bash(gh api:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(mkdir -p \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/.claude/references\" && cp \"C:/Users/ASUS/Desktop/2022_WritingCleanerCodeThatScales_EBook-v6-Final.pdf\" \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/.claude/references/2022_WritingCleanerCodeThatScales_EBook-v6-Final.pdf\" && echo \"Done\")",
-      "Bash(mkdir -p \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/.claude/skills/feature-design\" && mkdir -p \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/.claude/skills/optimization\")"
+      "Bash(mkdir -p \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/.claude/skills/feature-design\" && mkdir -p \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/.claude/skills/optimization\")",
+      "Bash(find \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/Assets/Scripts\" -name \"*.cs\" 2>/dev/null | head -30\nls \"C:/Users/ASUS/Desktop/Unity/Project/111_Cloning/Assets/Scripts/\")",
+      "Bash(ls -la \"C:\\\\Users\\\\ASUS\\\\Desktop\\\\Unity\\\\Project\\\\111_Cloning\\\\Assets\\\\Scripts\\\\\" 2>/dev/null || echo \"폴더가 없거나 접근 불가\")"
     ]
   }
 }
