@@ -2,12 +2,15 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// 플레이어 위치 이동을 담당한다.
+/// 플레이어 위치 이동을 담당하는 싱글턴.
 /// FloorManager가 코루틴으로 제어한다.
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerMover : MonoBehaviour
 {
+    // ── Singleton ─────────────────────────────────────────────────
+    public static PlayerMover Instance { get; private set; }
+
     // ── Serialized Fields ─────────────────────────────────────────
     [SerializeField, Tooltip("이동 속도 (m/s)")]
     [Range(1f, 20f)]
@@ -26,6 +29,7 @@ public class PlayerMover : MonoBehaviour
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Awake()
     {
+        Instance   = this;
         _rigidbody = GetComponent<Rigidbody2D>();
     }
 

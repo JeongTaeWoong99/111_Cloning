@@ -8,6 +8,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     // ── Properties ───────────────────────────────────────────────
+    public EnemyData   Data      { get; private set; }
     public float       MoveSpeed { get; private set; }
     public Rigidbody2D Rigidbody { get; private set; }
 
@@ -29,6 +30,7 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public void Initialize(EnemyData data)
     {
+        Data      = data;
         _health   = data.maxHealth;
         MoveSpeed = data.moveSpeed;
     }
@@ -50,6 +52,6 @@ public class Enemy : MonoBehaviour
     private void Die()
     {
         OnDied?.Invoke(this);
-        Destroy(gameObject);
+        // 풀 반환은 EnemySpawnManager가 처리
     }
 }

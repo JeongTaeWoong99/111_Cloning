@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -7,9 +6,6 @@ using UnityEngine;
 public class PlayerCombat : MonoBehaviour
 {
     // ── Serialized Fields ─────────────────────────────────────────
-    [Header("참조")]
-    [SerializeField] private PlayerMover _playerMover;
-
     [Header("공격")]
     [SerializeField, Tooltip("공격 범위 (m)")]
     [Range(1f, 10f)]
@@ -37,7 +33,7 @@ public class PlayerCombat : MonoBehaviour
         }
 
         // 대쉬 중 입력 차단
-        if (_playerMover.IsMoving)
+        if (PlayerMover.Instance.IsMoving)
         {
             return;
         }
@@ -94,7 +90,7 @@ public class PlayerCombat : MonoBehaviour
 
         // 적 왼쪽 1m 앞으로 대쉬
         Vector2 dashTarget = (Vector2)nearest.transform.position + Vector2.left * 1f;
-        StartCoroutine(_playerMover.DashTo(dashTarget));
+        StartCoroutine(PlayerMover.Instance.DashTo(dashTarget));
     }
 
     // S키 패리 — 추후 구현

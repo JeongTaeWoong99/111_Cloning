@@ -1,11 +1,29 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// 층 관리 오케스트레이터 — 상태 전환 + 플레이어 시퀀스 + 전투 흐름
-// 활성화 규칙: 현재층 ~ 현재층+2 (최대 3개) + 이전 Start Grid(1층만)
+// ─────────────────────────────────────────────────────────────────────────────
+/// <summary>
+/// 한 층에서 사용하는 위치 참조 세트 (A 또는 B).
+/// FloorManager가 A/B를 번갈아 Current/Next 역할로 사용한다.
+/// </summary>
+[Serializable]
+public class FloorPositionSet
+{
+    public Transform playerStartSpawnPos;
+    public Transform playerStartMovePos;
+    public Transform enemySpawnPos;
+    public Transform playerEndMovePos;
+}
+
+/// <summary>
+/// 층 관리 오케스트레이터 — 상태 전환 + 플레이어 시퀀스 + 전투 흐름.
+/// 활성화 규칙: 현재층 ~ 현재층+2 (최대 3개) + 이전 Start Grid(1층만).
+/// </summary>
 public class FloorManager : MonoBehaviour
 {
+    // ── Serialized Fields ─────────────────────────────────────────
     [Header("층 구성")]
     [SerializeField] private GridPool               _gridPool;
     [SerializeField] private CameraScrollController _cameraScroll;
@@ -16,11 +34,8 @@ public class FloorManager : MonoBehaviour
     [Header("플레이어 위치 세트")]
     [SerializeField] private FloorPositionSet _setA;
     [SerializeField] private FloorPositionSet _setB;
-    [SerializeField] private PlayerMover      _playerMover;
 
-    [Header("전투")]
-    [SerializeField] private EnemySpawnManager _enemySpawnManager;
-
+    // ── Fields ────────────────────────────────────────────────────
     // 층 번호 → 그리드 인스턴스 매핑
     private readonly Dictionary<int, FloorGrid> _floorGridMap = new();
 
@@ -29,9 +44,11 @@ public class FloorManager : MonoBehaviour
 
     private const int PreloadCount = 2;
 
+    // ── Helpers ───────────────────────────────────────────────────
     // 층 번호 → 월드 위치 (y축 기준)
     private Vector3 FloorToPos(int floor) => Vector3.up * ((floor - 1) * _gridHeight);
 
+    // ── MonoBehaviour ─────────────────────────────────────────────
     private void Start()
     {
         _gridPool.Initialize();
@@ -52,7 +69,10 @@ public class FloorManager : MonoBehaviour
         StartCoroutine(RunFloor());
     }
 
-    // 한 층의 전체 진행 흐름: 등장 → 전투 → 퇴장 → 층 전환 → 반복
+    // ── Private Methods ───────────────────────────────────────────
+    /// <summary>
+    /// 한 층의 전체 진행 흐름 : 등장 → 전투 → 퇴장 → 층 전환 → 반복.
+    /// </summary>
     private IEnumerator RunFloor()
     {
         FloorPositionSet activeSet  = _useSetA ? _setA : _setB;
@@ -60,26 +80,26 @@ public class FloorManager : MonoBehaviour
 
         // 1. 등장 (Entering)
         GameManager.Instance.SetState(GameState.Entering);
-        _playerMover.TeleportTo(activeSet.playerStartSpawnPos.position);
-        _enemySpawnManager.SpawnEnemies(activeSet);
-        yield return StartCoroutine(_playerMover.MoveTo(activeSet.playerStartMovePos.position));
+        PlayerMover.Instance.TeleportTo(activeSet.playerStartSpawnPos.position);
+        EnemySpawnManager.Instance.SpawnEnemies(activeSet);
+        yield return StartCoroutine(PlayerMover.Instance.MoveTo(activeSet.playerStartMovePos.position));
 
         // 2. 전투 (Combat) — 적 전멸까지 대기
         GameManager.Instance.SetState(GameState.Combat);
 
         bool isCleared = false;
-        _enemySpawnManager.OnAllDefeated += HandleAllDefeated;
-        _enemySpawnManager.StartMoving();
+        EnemySpawnManager.Instance.OnAllDefeated += HandleAllDefeated;
+        EnemySpawnManager.Instance.StartMoving();
 
         yield return new WaitUntil(() => isCleared);
 
-        _enemySpawnManager.OnAllDefeated -= HandleAllDefeated;
+        EnemySpawnManager.Instance.OnAllDefeated -= HandleAllDefeated;
 
         void HandleAllDefeated() => isCleared = true;
 
         // 3. 퇴장 (Cleared)
         GameManager.Instance.SetState(GameState.Cleared);
-        yield return StartCoroutine(_playerMover.MoveTo(activeSet.playerEndMovePos.position));
+        yield return StartCoroutine(PlayerMover.Instance.MoveTo(activeSet.playerEndMovePos.position));
 
         // 4. 마지막 층 도달 → 시퀀스 종료
         if (_currentFloor >= _totalFloors)
@@ -89,18 +109,20 @@ public class FloorManager : MonoBehaviour
 
         // 5. 층 전환 (Transitioning)
         GameManager.Instance.SetState(GameState.Transitioning);
-        _playerMover.TeleportTo(standbySet.playerStartSpawnPos.position);
+        PlayerMover.Instance.TeleportTo(standbySet.playerStartSpawnPos.position);
         MoveSetUp(activeSet, _gridHeight * 2f);
 
         // 6. 카메라 스크롤 + 그리드 순환
-        yield return StartCoroutine(AdvanceFloor());
+        yield return StartCoroutine(NextFloor());
 
         // 7. A/B 스왑 후 다음 층 진행
         _useSetA = !_useSetA;
         StartCoroutine(RunFloor());
     }
 
-    // 세트의 4개 Transform을 y축으로 deltaY만큼 이동
+    /// <summary>
+    /// 세트의 4개 Transform을 y축으로 deltaY만큼 이동한다.
+    /// </summary>
     private void MoveSetUp(FloorPositionSet set, float deltaY)
     {
         MoveTransformUp(set.playerStartSpawnPos, deltaY);
@@ -111,13 +133,15 @@ public class FloorManager : MonoBehaviour
 
     private void MoveTransformUp(Transform target, float deltaY)
     {
-        Vector3 position = target.position;
-        position.y      += deltaY;
-        target.position  = position;
+        Vector3 position  = target.position;
+        position.y       += deltaY;
+        target.position   = position;
     }
 
-    // 카메라 스크롤 + 그리드 풀 순환
-    private IEnumerator AdvanceFloor()
+    /// <summary>
+    /// 카메라 스크롤 후 그리드 풀을 순환하며 다음 층을 준비한다.
+    /// </summary>
+    private IEnumerator NextFloor()
     {
         _currentFloor++;
 
