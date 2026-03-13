@@ -1306,7 +1306,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMover
   _moveSpeed: 10
-  _dashSpeed: 20
+  _dashForce: 50
+  _dashDrag: 2
 --- !u!114 &2142634747
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1325,6 +1326,8 @@ MonoBehaviour:
   _enemyLayer:
     serializedVersion: 2
     m_Bits: 64
+  _dashCooldown: 1
+  _parryCooldown: 1
 --- !u!114 &2142634748
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1338,9 +1341,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerBoundaryHandler
   _boundaryXOffset: 1
-  _knockbackForce: 12
+  _knockbackForce: 15
   _knockbackDuration: 0.4
-  _playerLaunchForce: 12
+  _playerLaunchForce: 10
   _playerLaunchDuration: 0.2
 --- !u!114 &2142634749
 MonoBehaviour:

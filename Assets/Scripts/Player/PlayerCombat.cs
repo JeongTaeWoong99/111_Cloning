@@ -22,8 +22,21 @@ public class PlayerCombat : MonoBehaviour
 
     [SerializeField] private LayerMask _enemyLayer;
 
+    [Header("대쉬")]
+    [SerializeField, Tooltip("대쉬 쿨다운 (초)")]
+    [Range(0.1f, 5f)]
+    private float _dashCooldown = 1f;
+
+    [Header("패링")]
+    // 경계 밀쳐내기(S키)는 쿨타임 미적용 — 이 값은 전투 패링 구현 시 사용
+    [SerializeField, Tooltip("패링 쿨다운 (초)")]
+    [Range(0.1f, 5f)]
+    private float _parryCooldown = 1f;
+
     // ── Fields ────────────────────────────────────────────────────
     private float _attackTimer;
+    private float _dashTimer;
+    private float _parryTimer;
 
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Update()
@@ -40,6 +53,9 @@ public class PlayerCombat : MonoBehaviour
         {
             return;
         }
+
+        // 패링 타이머는 Combat 상태에서 계속 증가 (전투 패링 구현 시 HandleParry에서 사용)
+        _parryTimer += Time.deltaTime;
 
         HandleAttack();
         HandleDash();
@@ -79,6 +95,8 @@ public class PlayerCombat : MonoBehaviour
 
     private void HandleDash()
     {
+        _dashTimer += Time.deltaTime;
+
         if (PlayerMover.Instance.IsMoving)
         {
             return;
@@ -88,6 +106,13 @@ public class PlayerCombat : MonoBehaviour
         {
             return;
         }
+
+        if (_dashTimer < _dashCooldown)
+        {
+            return;
+        }
+
+        _dashTimer = 0f;
 
         Enemy nearest = FindNearestEnemy();
 

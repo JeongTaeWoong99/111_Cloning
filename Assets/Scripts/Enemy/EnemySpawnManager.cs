@@ -46,8 +46,6 @@ public class EnemySpawnManager : MonoBehaviour
             return;
         }
 
-        float deltaTime = Time.fixedDeltaTime;
-
         foreach (Enemy enemy in _livingEnemies)
         {
             // 넉백 중인 적은 자동이동 스킵
@@ -56,8 +54,11 @@ public class EnemySpawnManager : MonoBehaviour
                 continue;
             }
 
-            Vector2 next = enemy.Rigidbody.position + Vector2.left * (enemy.MoveSpeed * deltaTime);
-            enemy.Rigidbody.MovePosition(next);
+            // x만 설정해 중력(y)은 물리 엔진에 위임
+            enemy.Rigidbody.linearVelocity = new Vector2(
+                -enemy.MoveSpeed,
+                enemy.Rigidbody.linearVelocity.y
+            );
         }
     }
 

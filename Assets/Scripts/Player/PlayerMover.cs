@@ -16,9 +16,13 @@ public class PlayerMover : MonoBehaviour
     [Range(1f, 20f)]
     private float _moveSpeed = 5f;
 
-    [SerializeField, Tooltip("대쉬 이동 속도 (m/s)")]
+    [SerializeField, Tooltip("대쉬 초기 충격량")]
     [Range(5f, 50f)]
-    private float _dashSpeed = 20f;
+    private float _dashForce = 25f;
+
+    [SerializeField, Tooltip("대쉬 감속 드래그 (클수록 빨리 멈춤)")]
+    [Range(1f, 30f)]
+    private float _dashDrag = 10f;
 
     // ── Properties ───────────────────────────────────────────────
     public bool IsMoving { get; private set; }
@@ -53,20 +57,31 @@ public class PlayerMover : MonoBehaviour
     }
 
     /// <summary>
-    /// 목표 위치까지 대쉬 속도로 물리 기반으로 이동한다.
+    /// 목표 방향으로 AddForce 후 드래그로 감속하며 대쉬한다.
+    /// 가속이 확 붙었다가 스르르 줄어드는 느낌.
     /// </summary>
     public IEnumerator DashTo(Vector2 target)
     {
         IsMoving = true;
 
-        while (Vector2.Distance(_rigidbody.position, target) > 0.5f)
-        {
-            Vector2 next = Vector2.MoveTowards(_rigidbody.position, target, _dashSpeed * Time.fixedDeltaTime);
-            _rigidbody.MovePosition(next);
+        float originalDrag        = _rigidbody.linearDamping;
+        _rigidbody.linearDamping  = _dashDrag;
 
+        Vector2 direction = (target - _rigidbody.position).normalized;
+        _rigidbody.AddForce(direction * _dashForce, ForceMode2D.Impulse);
+
+        // 힘 적용 후 한 프레임 대기 후 판정 시작
+        yield return new WaitForFixedUpdate();
+
+        // 목표 근처 도달 또는 속도가 충분히 줄어들 때까지 대기
+        while (Vector2.Distance(_rigidbody.position, target) > 0.5f &&
+               _rigidbody.linearVelocity.magnitude > 0.5f)
+        {
             yield return new WaitForFixedUpdate();
         }
 
+        _rigidbody.linearDamping  = originalDrag;
+        _rigidbody.linearVelocity = Vector2.zero;
         IsMoving = false;
     }
 
