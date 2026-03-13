@@ -84,11 +84,16 @@ public class PlayerCombat : MonoBehaviour
 
         Collider2D[] hits = Physics2D.OverlapBoxAll(boxCenter, boxSize, 0f, _enemyLayer);
 
+        // 장비 스탯이 있으면 공격력 보너스 반영, 없으면 Inspector 기본값 사용
+        float damage = PlayerStats.Instance != null
+            ? _attackDamage + PlayerStats.Instance.TotalAttack
+            : _attackDamage;
+
         foreach (Collider2D hit in hits)
         {
             if (hit.TryGetComponent(out Enemy enemy))
             {
-                enemy.TakeDamage(_attackDamage);
+                enemy.TakeDamage(damage);
             }
         }
     }

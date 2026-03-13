@@ -111,8 +111,8 @@ public class Enemy : MonoBehaviour
 
     private void Die()
     {
-        _isDying             = true;
-        gameObject.layer     = s_deadLayer;
+        _isDying                 = true;
+        gameObject.layer         = s_deadLayer;
         Rigidbody.linearVelocity = Vector2.zero;
         PlayDie();
         StartCoroutine(InvokeDiedAfterDelay());

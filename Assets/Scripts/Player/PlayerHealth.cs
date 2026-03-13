@@ -25,8 +25,15 @@ public class PlayerHealth : MonoBehaviour
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Awake()
     {
-        Instance      = this;
-        CurrentHealth = _maxHealth;
+        Instance = this;
+
+        // 장비 스탯이 있으면 그 값으로 최대 체력 초기화, 없으면 Inspector 기본값 사용
+        int maxFromStats = PlayerStats.Instance != null
+            ? PlayerStats.Instance.TotalHealth
+            : _maxHealth;
+
+        _maxHealth    = maxFromStats;
+        CurrentHealth = maxFromStats;
     }
 
     // ── Public Methods ────────────────────────────────────────────
