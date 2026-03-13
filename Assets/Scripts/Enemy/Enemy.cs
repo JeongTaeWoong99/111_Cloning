@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// 적 개체. HP + 피격 + 사망 + 넉백만 담당한다. 이동은 EnemySpawnManager가 처리한다.
+/// 적 개체. HP + 피격 + 사망 + 넉백 + 애니메이션만 담당한다. 이동은 EnemySpawnManager가 처리한다.
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class Enemy : MonoBehaviour
@@ -13,36 +13,61 @@ public class Enemy : MonoBehaviour
     public float       MoveSpeed   { get; private set; }
     public Rigidbody2D Rigidbody   { get; private set; }
     public bool        IsKnockback => _isKnockback;
+    public bool        IsDying     => _isDying;
 
     // ── Events ────────────────────────────────────────────────────
     public event Action<Enemy> OnDied;
 
     // ── Fields ────────────────────────────────────────────────────
-    private float _health;
-    private bool  _isKnockback;
+    private static int s_deadLayer = -1;
+
+    private Animator _animator;
+    private float    _health;
+    private int      _originalLayer;
+    private bool     _isKnockback;
+    private bool     _isDying;
 
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Awake()
     {
-        Rigidbody = GetComponent<Rigidbody2D>();
+        Rigidbody      = GetComponent<Rigidbody2D>();
+        _animator      = GetComponent<Animator>();
+        _originalLayer = gameObject.layer;
+
+        // 첫 인스턴스 생성 시 한 번만 레이어 번호를 캐싱
+        if (s_deadLayer == -1)
+        {
+            s_deadLayer = LayerMask.NameToLayer("EnemyDead");
+        }
     }
 
     private void OnDisable()
     {
-        // 풀 반환 시 코루틴 정리
+        // 풀 반환 시 코루틴·물리·애니메이터 상태 초기화
         StopAllCoroutines();
-        _isKnockback = false;
+        _isKnockback     = false;
+        _isDying         = false;
+        gameObject.layer = _originalLayer;
+        _animator.Rebind();
+        // _animator.Update(0f) 제거 — 비활성 오브젝트에서 호출 불가
     }
 
     // ── Public Methods ────────────────────────────────────────────
     /// <summary>
-    /// EnemyData를 기반으로 초기화한다.
+    /// EnemyData를 기반으로 스탯과 애니메이션을 초기화한다.
     /// </summary>
     public void Initialize(EnemyData data)
     {
         Data      = data;
         _health   = data.maxHealth;
         MoveSpeed = data.moveSpeed;
+
+        if (data.overrideController != null)
+        {
+            _animator.runtimeAnimatorController = data.overrideController;
+        }
+
+        PlayIdle();
     }
 
     /// <summary>
@@ -50,6 +75,11 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public void TakeDamage(float amount)
     {
+        if (_isDying)
+        {
+            return;
+        }
+
         _health -= amount;
 
         if (_health <= 0f)
@@ -68,6 +98,10 @@ public class Enemy : MonoBehaviour
         StartCoroutine(ResetKnockbackAfter(duration));
     }
 
+    public void PlayIdle() => _animator.Play("Idle");
+    public void PlayRun()  => _animator.Play("Run");
+    public void PlayDie()  => _animator.Play("Die");
+
     // ── Private Methods ───────────────────────────────────────────
     private IEnumerator ResetKnockbackAfter(float duration)
     {
@@ -77,7 +111,17 @@ public class Enemy : MonoBehaviour
 
     private void Die()
     {
+        _isDying             = true;
+        gameObject.layer     = s_deadLayer;
+        Rigidbody.linearVelocity = Vector2.zero;
+        PlayDie();
+        StartCoroutine(InvokeDiedAfterDelay());
+    }
+
+    private IEnumerator InvokeDiedAfterDelay()
+    {
+        // Die 애니메이션이 모두 재생될 때까지 대기 (모든 Die 클립이 1초 이하)
+        yield return new WaitForSeconds(1f);
         OnDied?.Invoke(this);
-        // 풀 반환은 EnemySpawnManager가 처리
     }
 }

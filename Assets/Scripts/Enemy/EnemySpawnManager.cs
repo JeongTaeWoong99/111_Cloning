@@ -13,6 +13,9 @@ public class EnemySpawnManager : MonoBehaviour
     public static EnemySpawnManager Instance { get; private set; }
 
     // ── Serialized Fields ─────────────────────────────────────────
+    [Header("프리팹")]
+    [SerializeField] private Enemy _enemyPrefab;
+
     [Header("스폰 설정")]
     [SerializeField] private List<FloorSpawnConfig> _floorConfigs;
 
@@ -48,17 +51,15 @@ public class EnemySpawnManager : MonoBehaviour
 
         foreach (Enemy enemy in _livingEnemies)
         {
-            // 넉백 중인 적은 자동이동 스킵
-            if (enemy.IsKnockback)
+            // 넉백·사망 중인 적은 자동이동 스킵
+            if (enemy.IsKnockback || enemy.IsDying)
             {
                 continue;
             }
 
             // x만 설정해 중력(y)은 물리 엔진에 위임
-            enemy.Rigidbody.linearVelocity = new Vector2(
-                -enemy.MoveSpeed,
-                enemy.Rigidbody.linearVelocity.y
-            );
+            enemy.Rigidbody.linearVelocity = new Vector2(-enemy.MoveSpeed,
+                                                          enemy.Rigidbody.linearVelocity.y);
         }
     }
 
@@ -99,6 +100,11 @@ public class EnemySpawnManager : MonoBehaviour
         {
             enemy.OnDied += OnEnemyDied;
             _livingEnemies.Add(enemy);
+
+            if (_isMoving)
+            {
+                enemy.PlayRun();
+            }
         }
 
         _pendingEnemies.Remove(floor);
@@ -131,15 +137,20 @@ public class EnemySpawnManager : MonoBehaviour
     public bool HasPendingFloor(int floor) => _pendingEnemies.ContainsKey(floor);
 
     /// <summary>
-    /// 적 일괄 이동을 시작한다.
+    /// 적 일괄 이동을 시작하고 Run 애니메이션을 재생한다.
     /// </summary>
     public void StartMoving()
     {
         _isMoving = true;
+
+        foreach (Enemy enemy in _livingEnemies)
+        {
+            enemy.PlayRun();
+        }
     }
 
     /// <summary>
-    /// 적 일괄 이동을 멈추고 모든 적의 velocity를 즉시 0으로 만든다.
+    /// 적 일괄 이동을 멈추고 모든 적의 velocity를 즉시 0으로 만들고 Idle 애니메이션을 재생한다.
     /// </summary>
     public void StopMoving()
     {
@@ -148,6 +159,7 @@ public class EnemySpawnManager : MonoBehaviour
         foreach (Enemy enemy in _livingEnemies)
         {
             enemy.Rigidbody.linearVelocity = Vector2.zero;
+            enemy.PlayIdle();
         }
     }
 
@@ -216,7 +228,7 @@ public class EnemySpawnManager : MonoBehaviour
         if (!_pools.ContainsKey(data))
         {
             _pools[data] = new ObjectPool<Enemy>(
-                createFunc:      () => Instantiate(data.prefab).GetComponent<Enemy>(),
+                createFunc:      ()    => Instantiate(_enemyPrefab),
                 actionOnGet:     enemy => enemy.gameObject.SetActive(true),
                 actionOnRelease: enemy => enemy.gameObject.SetActive(false),
                 actionOnDestroy: enemy => Destroy(enemy.gameObject)

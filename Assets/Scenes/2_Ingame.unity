@@ -179,6 +179,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e68120328c409344b6d160611f34f03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnManager
+  _enemyPrefab: {fileID: 6118449324204759450, guid: 699d47d44f92df545bd304a132a7aa4d, type: 3}
   _floorConfigs:
   - {fileID: 11400000, guid: 62a7582501c23184eaf137296ccc61da, type: 2}
   - {fileID: 11400000, guid: ba646f07ba9f4144e9f441f63b55623a, type: 2}
@@ -948,7 +949,7 @@ GameObject:
   - component: {fileID: 1410707951}
   - component: {fileID: 1410707950}
   - component: {fileID: 1410707949}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FloorSystem
   m_TagString: Untagged
   m_Icon: {fileID: 0}

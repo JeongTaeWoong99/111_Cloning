@@ -6,7 +6,7 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Game/Enemy Data")]
 public class EnemyData : ScriptableObject
 {
-    public GameObject prefab;
-    public float      maxHealth;
-    public float      moveSpeed;
+    public AnimatorOverrideController overrideController;
+    public float                      maxHealth;
+    public float                      moveSpeed;
 }
