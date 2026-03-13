@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -27,13 +28,15 @@ public class PlayerCombat : MonoBehaviour
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Update()
     {
-        if (GameManager.Instance.CurrentState != GameState.Combat)
+        GameState state = GameManager.Instance.CurrentState;
+
+        if (state == GameState.Pinned)
         {
+            HandleParry();
             return;
         }
 
-        // 대쉬 중 입력 차단
-        if (PlayerMover.Instance.IsMoving)
+        if (state != GameState.Combat)
         {
             return;
         }
@@ -76,6 +79,11 @@ public class PlayerCombat : MonoBehaviour
 
     private void HandleDash()
     {
+        if (PlayerMover.Instance.IsMoving)
+        {
+            return;
+        }
+
         if (!Input.GetKeyDown(KeyCode.D))
         {
             return;
@@ -93,8 +101,15 @@ public class PlayerCombat : MonoBehaviour
         StartCoroutine(PlayerMover.Instance.DashTo(dashTarget));
     }
 
-    // S키 패리 — 추후 구현
-    private void HandleParry() { }
+    private void HandleParry()
+    {
+        if (!Input.GetKeyDown(KeyCode.S))
+        {
+            return;
+        }
+
+        PlayerBoundaryHandler.Instance.Counterattack();
+    }
 
     private void OnDrawGizmosSelected()
     {
@@ -111,10 +126,10 @@ public class PlayerCombat : MonoBehaviour
 
     private Enemy FindNearestEnemy()
     {
-        Enemy[] enemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+        IReadOnlyList<Enemy> enemies = EnemySpawnManager.Instance.LivingEnemies;
 
-        Enemy nearest  = null;
-        float minDist  = float.MaxValue;
+        Enemy nearest = null;
+        float minDist = float.MaxValue;
 
         foreach (Enemy enemy in enemies)
         {

@@ -71,6 +71,32 @@ public class PlayerMover : MonoBehaviour
     }
 
     /// <summary>
+    /// AddForce 기반으로 플레이어를 발사하고, duration 동안 대쉬를 차단한다.
+    /// </summary>
+    public void Launch(Vector2 force, float duration)
+    {
+        StartCoroutine(LaunchAsync(force, duration));
+    }
+
+    private IEnumerator LaunchAsync(Vector2 force, float duration)
+    {
+        IsMoving = true;
+        _rigidbody.AddForce(force, ForceMode2D.Impulse);
+        yield return new WaitForSeconds(duration);
+        IsMoving = false;
+    }
+
+    /// <summary>
+    /// 실행 중인 이동 코루틴을 즉시 중단하고 velocity를 0으로 만든다.
+    /// </summary>
+    public void StopImmediate()
+    {
+        StopAllCoroutines();
+        IsMoving                  = false;
+        _rigidbody.linearVelocity = Vector2.zero;
+    }
+
+    /// <summary>
     /// 지정 위치로 즉시 순간이동한다.
     /// </summary>
     public void TeleportTo(Vector2 position)

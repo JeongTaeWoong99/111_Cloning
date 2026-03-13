@@ -11,6 +11,8 @@ public enum GameState
     Combat,        // 적 이동 + 플레이어 입력 활성
     Cleared,       // 적 전멸, 플레이어 퇴장 이동
     Transitioning, // 층 전환 중 (카메라 스크롤)
+    Pinned,        // 플레이어가 왼쪽 경계에 밀림
+    GameOver,      // 게임 오버
 }
 
 /// <summary>
@@ -41,5 +43,10 @@ public class GameManager : MonoBehaviour
     {
         CurrentState = state;
         OnStateChanged?.Invoke(state);
+
+        if (state == GameState.GameOver)
+        {
+            Time.timeScale = 0f;
+        }
     }
 }
