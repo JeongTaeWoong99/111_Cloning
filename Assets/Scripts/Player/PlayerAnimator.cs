@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Inventory;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ public class PlayerAnimator : MonoBehaviour
     // ──────────────────────────────────────────
     private void Awake()
     {
+        Debug.Log("[PA-1] PlayerAnimator.Awake 진입");
         _animator = GetComponent<Animator>();
 
         // Awake에서 구독: SceneManager.sceneLoaded 이벤트(Awake 이후, Start 이전 발행)를 놓치지 않기 위함
@@ -33,8 +35,23 @@ public class PlayerAnimator : MonoBehaviour
             PlayerInventory.Instance.OnChanged          += ApplyAnimation;
             PlayerInventory.Instance.OnCharacterChanged += ApplyAnimation;
         }
+        else
+        {
+            Debug.LogWarning("[PA-2] PlayerInventory.Instance가 null — 이벤트 구독 불가!");
+        }
 
+        // Debug.Log("[PA-3] Awake에서 ApplyAnimation 직접 호출");
         ApplyAnimation();
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnStateChanged += OnGameStateChanged;
+            Debug.Log("[PA] GameManager 구독 성공");
+        }
+        else
+        {
+            Debug.LogWarning("[PA] GameManager null — OnStateChanged 구독 실패!!!");
+        }
     }
 
     private void OnDestroy()
@@ -44,28 +61,94 @@ public class PlayerAnimator : MonoBehaviour
             PlayerInventory.Instance.OnChanged          -= ApplyAnimation;
             PlayerInventory.Instance.OnCharacterChanged -= ApplyAnimation;
         }
+
+        if (GameManager.Instance != null)
+            GameManager.Instance.OnStateChanged -= OnGameStateChanged;
     }
 
     // ──────────────────────────────────────────
     // Public Methods — 애니메이션 재생
     // ──────────────────────────────────────────
-    public void PlayIdle()   => _animator.Play("Idle");
-    public void PlayRun()    => _animator.Play("Run");
-    public void PlayAttack() => _animator.Play("Attack");
-    public void PlayDash()   => _animator.Play("Dash");
-    public void PlayDie()    => _animator.Play("Die");
-    public void PlaySkill()  => _animator.Play("Skill");  // 추후 에셋 준비 후 사용
+    public void PlayIdle()  { ResetSpeed(); Debug.Log($"[PA] PlayIdle  (f={Time.frameCount})"); _animator.Play("Idle"); }
+    public void PlayRun()   { ResetSpeed(); Debug.Log($"[PA] PlayRun   (f={Time.frameCount})"); _animator.Play("Run"); }
+    public void PlayDash()  { ResetSpeed(); Debug.Log($"[PA] PlayDash  (f={Time.frameCount})"); _animator.Play("Dash"); }
+    public void PlayDie()   { ResetSpeed(); _animator.Play("Die"); }
+    public void PlaySkill() { ResetSpeed(); _animator.Play("Skill"); }  // 추후 에셋 준비 후 사용
+
+    /// <summary>speed 배율로 Attack 애니메이션을 처음부터 재생합니다.</summary>
+    public void PlayAttack(float speed = 1f)
+    {
+        _animator.speed = speed;
+        // normalizedTime=0 명시: 동일 상태에서 재호출 시에도 반드시 처음부터 재생
+        _animator.Play("Attack", 0, 0f);
+    }
+
+    /// <summary>AnimatorOverrideController에서 상태명에 해당하는 클립 길이를 반환합니다.</summary>
+    /// <remarks>
+    /// AOC의 키 클립명은 "Attack_Bow" 형태이므로, '_' 기준으로 앞부분만 잘라 stateName과 비교합니다.
+    /// </remarks>
+    public float GetClipLength(string stateName)
+    {
+        if (_animator.runtimeAnimatorController is AnimatorOverrideController aoc)
+        {
+            var overrides = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+            aoc.GetOverrides(overrides);
+
+            foreach (KeyValuePair<AnimationClip, AnimationClip> pair in overrides)
+            {
+                if (pair.Key == null || pair.Value == null) continue;
+
+                // 키 클립명 앞부분으로 상태 매칭: "Attack_Bow" → "Attack"
+                string baseName = pair.Key.name.Split('_')[0];
+                if (string.Equals(baseName, stateName, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    Debug.Log($"[PA] GetClipLength({stateName}) = {pair.Value.length:F3}s (key={pair.Key.name})");
+                    return pair.Value.length;
+                }
+            }
+            Debug.LogWarning($"[PA] GetClipLength({stateName}): 매핑 없음 → 0.5f 폴백!");
+        }
+        else
+        {
+            Debug.LogWarning("[PA] GetClipLength: runtimeAnimatorController가 AOC 아님!");
+        }
+
+        return 0.5f;
+    }
+
+    public float GetAttackClipLength() => GetClipLength("Attack");
+
+    public void ResetSpeed() => _animator.speed = 1f;
 
     // ──────────────────────────────────────────
     // Private Methods
     // ──────────────────────────────────────────
 
+    private void OnGameStateChanged(GameState state)
+    {
+        Debug.Log($"[PA] OnStateChanged({state})");
+        switch (state)
+        {
+            case GameState.Entering:
+            case GameState.Cleared:
+                Debug.Log("[PA] → PlayRun");
+                PlayRun();   // 등장/퇴장 이동 중 Run
+                break;
+            case GameState.Combat:
+                Debug.Log("[PA] → PlayIdle");
+                PlayIdle();  // 전투 진입 시 초기 Idle
+                break;
+            // Pinned / Transitioning / GameOver: 다른 시스템이 처리
+        }
+    }
+
     private void ApplyAnimation()
     {
+        // Debug.Log("[PA-4] ApplyAnimation 호출됨");
         CharacterData ch = PlayerInventory.Instance?.SelectedCharacter;
         AnimatorOverrideController controller = ch?.overrideController ?? _defaultController;
 
-        Debug.Log($"[PlayerAnimator] ApplyAnimation — 캐릭터: {ch?.name ?? "null"} / 컨트롤러: {controller?.name ?? "null"}");
+        // Debug.Log($"[PA-5] 캐릭터: {ch?.name ?? "null"} / 컨트롤러: {controller?.name ?? "null"}");
 
         if (controller == null)
         {
@@ -74,6 +157,6 @@ public class PlayerAnimator : MonoBehaviour
         }
 
         _animator.runtimeAnimatorController = controller;
-        _animator.Play("Idle");  // 컨트롤러 교체 후 Idle 명시 재생
+        PlayIdle();  // 컨트롤러 교체 후 Idle 명시 재생 (speed 초기화 포함)
     }
 }

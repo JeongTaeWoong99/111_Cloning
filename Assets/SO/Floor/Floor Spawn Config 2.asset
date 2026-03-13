@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7eedda91e85af64418a39db203fa3d31, type: 3}
   m_Name: Floor Spawn Config 2
   m_EditorClassIdentifier: Assembly-CSharp::FloorSpawnConfig
-  totalEnemyCount: 2
+  totalEnemyCount: 10
   entries:
   - data: {fileID: 11400000, guid: 41bb398aa1976084584c9542ccb9ae01, type: 2}
     percent: 90

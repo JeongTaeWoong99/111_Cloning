@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9588cf00403145c4384db58f720e7d58, type: 3}
   m_Name: Bow Character Data
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterName: "\uAC80\uC0AC"
-  weaponType: 1
-  baseAttack: 5
-  baseHealth: 3
+  characterName: "\uAD81\uBCD1"
+  weaponType: 2
+  baseAttack: 10
+  baseHealth: 5
+  baseAttackSpeed: 1
   overrideController: {fileID: 22100000, guid: 1db0f390b32736e4bbca587f9346c8dd, type: 2}

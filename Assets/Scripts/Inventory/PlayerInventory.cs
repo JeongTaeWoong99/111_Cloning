@@ -69,7 +69,6 @@ namespace Inventory
         /// <summary>씬 전환 후 모든 구독자에게 현재 상태를 재발행합니다.</summary>
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {
-            Debug.Log($"[PlayerInventory] 씬 로드: {scene.name} / 캐릭터: {SelectedCharacter?.name ?? "null"} / 무기타입: {SelectedCharacter?.weaponType.ToString() ?? "null"}");
             OnChanged?.Invoke();
             OnCharacterChanged?.Invoke();
         }

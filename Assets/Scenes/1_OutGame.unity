@@ -11099,7 +11099,7 @@ GameObject:
   - component: {fileID: 726661566}
   - component: {fileID: 726661567}
   m_Layer: 0
-  m_Name: CharacterSelectUI
+  m_Name: CameraScrollController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -15778,7 +15778,7 @@ Animator:
   m_GameObject: {fileID: 2064175038}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 9bb88f5931378804fba98b5cd83951ab, type: 2}
+  m_Controller: {fileID: 22100000, guid: 1c42a101d0dd5f44281cd13f457bee74, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

@@ -22,6 +22,9 @@ namespace Inventory
         [SerializeField, Tooltip("체력 보너스")]
         public int healthBonus;
 
+        [SerializeField, Tooltip("공격 속도 보너스 (% 단위, 100 = +1.0배속 추가)")]
+        public int attackSpeedBonus;
+
         [Header("무기 전용")]
         [SerializeField, Tooltip("무기 서브 타입 (비무기 아이템은 None)")]
         public WeaponType weaponType;

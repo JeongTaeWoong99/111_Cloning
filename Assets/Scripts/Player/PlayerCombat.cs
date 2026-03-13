@@ -1,8 +1,10 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
 /// 플레이어 전투 입력 처리 — 공격(A), 대쉬(D), 패리(S).
+/// 히트 판정은 애니메이션 이벤트 OnMeleeHit / OnArrowSpawn으로 처리한다.
 /// </summary>
 public class PlayerCombat : MonoBehaviour
 {
@@ -11,14 +13,6 @@ public class PlayerCombat : MonoBehaviour
     [SerializeField, Tooltip("공격 범위 (m)")]
     [Range(1f, 10f)]
     private float _attackRange = 3f;
-
-    [SerializeField, Tooltip("공격 데미지")]
-    [Range(1f, 100f)]
-    private float _attackDamage = 10f;
-
-    [SerializeField, Tooltip("공격 쿨다운 (초)")]
-    [Range(0.1f, 2f)]
-    private float _attackCooldown = 0.3f;
 
     [SerializeField] private LayerMask _enemyLayer;
 
@@ -34,9 +28,11 @@ public class PlayerCombat : MonoBehaviour
     private float _parryCooldown = 1f;
 
     // ── Fields ────────────────────────────────────────────────────
-    private float _attackTimer;
-    private float _dashTimer;
-    private float _parryTimer;
+    private bool      _isAttacking;
+    private bool      _isDashing;
+    private Coroutine _attackCoroutine;
+    private float     _dashTimer;
+    private float     _parryTimer;
 
     private PlayerAnimator _playerAnimator;
 
@@ -50,6 +46,17 @@ public class PlayerCombat : MonoBehaviour
     {
         GameState state = GameManager.Instance.CurrentState;
 
+        // 사망 중(Die 애니메이션 ~ GameOver 전환 사이) 또는 전투 불가 상태
+        if (PlayerHealth.Instance.IsDead        ||
+            state == GameState.Cleared          ||
+            state == GameState.Transitioning    ||
+            state == GameState.Entering         ||
+            state == GameState.GameOver)
+        {
+            if (_isAttacking) StopAttack();
+            return;
+        }
+
         if (state == GameState.Pinned)
         {
             HandleParry();
@@ -61,7 +68,6 @@ public class PlayerCombat : MonoBehaviour
             return;
         }
 
-        // 패링 타이머는 Combat 상태에서 계속 증가 (전투 패링 구현 시 HandleParry에서 사용)
         _parryTimer += Time.deltaTime;
 
         HandleAttack();
@@ -71,96 +77,124 @@ public class PlayerCombat : MonoBehaviour
     // ── Private Methods ───────────────────────────────────────────
     private void HandleAttack()
     {
-        _attackTimer += Time.deltaTime;
+        // 대쉬 중 또는 이미 공격 코루틴 실행 중이면 무시
+        if (_isDashing || _isAttacking) return;
 
-        if (!Input.GetKey(KeyCode.A))
+        if (Input.GetKey(KeyCode.A))
         {
-            return;
+            StartAttack();
+        }
+    }
+
+    private void StartAttack()
+    {
+        if (_attackCoroutine != null)
+        {
+            StopCoroutine(_attackCoroutine);
         }
 
-        if (_attackTimer < _attackCooldown)
+        _attackCoroutine = StartCoroutine(AttackLoop());
+    }
+
+    private void StopAttack()
+    {
+        if (_attackCoroutine != null)
         {
-            return;
+            StopCoroutine(_attackCoroutine);
+            _attackCoroutine = null;
         }
 
-        _attackTimer = 0f;
-        _playerAnimator?.PlayAttack();
+        _isAttacking = false;
+        // PlayIdle 제거 — PlayerAnimator.OnGameStateChanged가 처리
+    }
 
-        // 플레이어 오른쪽 방향 범위 안의 적에게 데미지
-        Vector2 boxCenter = (Vector2)transform.position + Vector2.right * (_attackRange * 0.5f);
-        Vector2 boxSize   = new Vector2(_attackRange, 1f);
+    /// <summary>
+    /// A키를 누르고 있는 동안 공격 애니메이션을 1회씩 반복 재생한다.
+    /// 클립 길이 / 공속으로 정확한 타이밍을 제어하므로 Animator 폴링이 필요 없다.
+    /// </summary>
+    private IEnumerator AttackLoop()
+    {
+        _isAttacking = true;
+        Debug.Log("[Combat] AttackLoop 시작");
 
-        Collider2D[] hits = Physics2D.OverlapBoxAll(boxCenter, boxSize, 0f, _enemyLayer);
-
-        // 장비 스탯이 있으면 공격력 보너스 반영, 없으면 Inspector 기본값 사용
-        float damage = PlayerStats.Instance != null
-            ? _attackDamage + PlayerStats.Instance.TotalAttack
-            : _attackDamage;
-
-        foreach (Collider2D hit in hits)
+        do
         {
-            if (hit.TryGetComponent(out Enemy enemy))
-            {
-                enemy.TakeDamage(damage);
-            }
+            float speed      = PlayerStats.Instance?.TotalAttackSpeed ?? 1f;
+            float clipLength = _playerAnimator.GetAttackClipLength();
+            Debug.Log($"[Combat] Attack iter: speed={speed:F2} clip={clipLength:F3}s → wait={clipLength / speed:F3}s");
+
+            _playerAnimator.PlayAttack(speed);
+            yield return new WaitForSeconds(clipLength / speed);
+
+            // 전투 불가 상태로 바뀌었으면 즉시 종료
+            if (GameManager.Instance.CurrentState != GameState.Combat) break;
         }
+        while (Input.GetKey(KeyCode.A));
+
+        _isAttacking     = false;
+        _attackCoroutine = null;
+        Debug.Log($"[Combat] AttackLoop 종료: state={GameManager.Instance.CurrentState}");
+
+        // Combat 상태일 때만 Idle 복귀 (아니면 PlayerAnimator.OnGameStateChanged가 처리)
+        if (GameManager.Instance.CurrentState == GameState.Combat)
+            _playerAnimator.PlayIdle();
     }
 
     private void HandleDash()
     {
         _dashTimer += Time.deltaTime;
 
-        if (PlayerMover.Instance.IsMoving)
-        {
-            return;
-        }
-
-        if (!Input.GetKeyDown(KeyCode.D))
-        {
-            return;
-        }
-
-        if (_dashTimer < _dashCooldown)
-        {
-            return;
-        }
+        if (_isDashing)                    return;  // 대쉬 애니메이션 중 재대쉬 방지
+        if (PlayerMover.Instance.IsMoving) return;
+        if (!Input.GetKeyDown(KeyCode.D))  return;
+        if (_dashTimer < _dashCooldown)    return;
 
         _dashTimer = 0f;
-        _playerAnimator?.PlayDash();
+
+        // 공격 코루틴 중단 후 대쉬 시작
+        StopAttack();
 
         Enemy nearest = FindNearestEnemy();
-
-        if (nearest == null)
-        {
-            return;
-        }
+        if (nearest == null) return;
 
         // 적 왼쪽 1m 앞으로 대쉬
         Vector2 dashTarget = (Vector2)nearest.transform.position + Vector2.left * 1f;
-        StartCoroutine(PlayerMover.Instance.DashTo(dashTarget));
+        StartCoroutine(DashSequence(dashTarget));
+    }
+
+    /// <summary>
+    /// 물리 이동(DashTo)과 Dash 애니메이션이 모두 끝난 뒤 다음 상태로 전이한다.
+    /// </summary>
+    private IEnumerator DashSequence(Vector2 target)
+    {
+        _isDashing = true;
+        float clip = _playerAnimator.GetClipLength("Dash");
+        Debug.Log($"[Combat] DashSequence 시작: target={target} clipWait={clip:F3}s");
+        _playerAnimator.PlayDash();
+
+        // 물리 독립 실행 (fire-and-forget)
+        StartCoroutine(PlayerMover.Instance.DashTo(target));
+
+        // 애니메이션 클립 길이만큼만 대기
+        yield return new WaitForSeconds(clip);
+
+        _isDashing = false;
+        Debug.Log($"[Combat] DashSequence 완료: state={GameManager.Instance.CurrentState}");
+
+        // Combat 상태일 때만 전이 (Pinned 등 다른 상태면 무시)
+        if (GameManager.Instance.CurrentState != GameState.Combat) yield break;
+
+        if (Input.GetKey(KeyCode.A))
+            StartAttack();
+        else
+            _playerAnimator.PlayIdle();
     }
 
     private void HandleParry()
     {
-        if (!Input.GetKeyDown(KeyCode.S))
-        {
-            return;
-        }
+        if (!Input.GetKeyDown(KeyCode.S)) return;
 
         PlayerBoundaryHandler.Instance.Counterattack();
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
-
-        Vector3 boxCenter = transform.position + Vector3.right * (_attackRange * 0.5f);
-        Vector3 boxSize   = new Vector3(_attackRange, 1f, 0f);
-
-        Gizmos.DrawCube(boxCenter, boxSize);
-
-        Gizmos.color = new Color(1f, 0f, 0f, 0.8f);
-        Gizmos.DrawWireCube(boxCenter, boxSize);
     }
 
     private Enemy FindNearestEnemy()
@@ -183,4 +217,44 @@ public class PlayerCombat : MonoBehaviour
 
         return nearest;
     }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
+
+        Vector3 boxCenter = transform.position + Vector3.right * (_attackRange * 0.5f);
+        Vector3 boxSize   = new Vector3(_attackRange, 1f, 0f);
+
+        Gizmos.DrawCube(boxCenter, boxSize);
+
+        Gizmos.color = new Color(1f, 0f, 0f, 0.8f);
+        Gizmos.DrawWireCube(boxCenter, boxSize);
+    }
+
+    // ── 애니메이션 이벤트 타겟 ─────────────────────────────────────
+
+    /// <summary>
+    /// Attack 클립의 타격 타이밍에 애니메이션 이벤트로 호출 (근접: Sword, Spear).
+    /// </summary>
+    public void OnMeleeHit()
+    {
+        float   damage    = PlayerStats.Instance?.TotalAttack ?? 1f;
+        Vector2 boxCenter = (Vector2)transform.position + Vector2.right * (_attackRange * 0.5f);
+        Vector2 boxSize   = new Vector2(_attackRange, 1f);
+
+        Collider2D[] hits = Physics2D.OverlapBoxAll(boxCenter, boxSize, 0f, _enemyLayer);
+
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.TryGetComponent(out Enemy enemy))
+            {
+                enemy.TakeDamage(damage);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Attack 클립의 발사 타이밍에 애니메이션 이벤트로 호출 (원거리: Bow) — 스텁.
+    /// </summary>
+    public void OnArrowSpawn() { /* TODO: 화살 프리팹 생성 */ }
 }

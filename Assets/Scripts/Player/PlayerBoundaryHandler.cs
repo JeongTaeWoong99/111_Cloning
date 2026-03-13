@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -33,6 +34,7 @@ public class PlayerBoundaryHandler : MonoBehaviour
 
     // ── Fields ────────────────────────────────────────────────────
     private bool _isPinned;
+    private bool _isLaunching;  // 반격 발사 중 — 재진입 방지용
 
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Awake()
@@ -47,8 +49,8 @@ public class PlayerBoundaryHandler : MonoBehaviour
             return;
         }
 
-        // 반격(LaunchAsync) 중 경계 재진입 방지
-        if (PlayerMover.Instance.IsMoving)
+        // 반격 발사 중만 차단 (DashTo는 차단 안 함)
+        if (_isLaunching)
         {
             return;
         }
@@ -74,7 +76,9 @@ public class PlayerBoundaryHandler : MonoBehaviour
     /// </summary>
     public void Counterattack()
     {
-        _isPinned = false;
+        Debug.Log("[Boundary] Counterattack 실행");
+        _isPinned    = false;
+        _isLaunching = true;
         GameManager.Instance.SetState(GameState.Combat);
 
         // 45도 방향 = (right + up).normalized
@@ -85,6 +89,15 @@ public class PlayerBoundaryHandler : MonoBehaviour
 
         EnemySpawnManager.Instance.KnockbackEnemies(
             knockbackDir * _knockbackForce, _knockbackDuration);
+
+        StartCoroutine(ClearLaunchFlag());
+    }
+
+    private IEnumerator ClearLaunchFlag()
+    {
+        yield return new WaitForSeconds(_playerLaunchDuration);
+        _isLaunching = false;
+        Debug.Log($"[Boundary] _isLaunching 해제: player.x={transform.position.x:F2} leftBound={Camera.main.ViewportToWorldPoint(Vector3.zero).x + _boundaryXOffset:F2}");
     }
 
     // ── Private Methods ───────────────────────────────────────────
@@ -94,12 +107,14 @@ public class PlayerBoundaryHandler : MonoBehaviour
 
         if (transform.position.x <= leftBound)
         {
+            Debug.Log($"[Boundary] 경계 감지 player.x={transform.position.x:F2} leftBound={leftBound:F2}");
             EnterPinned();
         }
     }
 
     private void EnterPinned()
     {
+        Debug.Log($"[Boundary] EnterPinned — _isPinned={_isPinned}");
         if (_isPinned)
         {
             return;

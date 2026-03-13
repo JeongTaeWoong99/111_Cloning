@@ -17,8 +17,9 @@ public class PlayerStats : MonoBehaviour
     // ──────────────────────────────────────────
     // Properties
     // ──────────────────────────────────────────
-    public int TotalAttack { get; private set; }
-    public int TotalHealth { get; private set; }
+    public int   TotalAttack      { get; private set; }
+    public int   TotalHealth      { get; private set; }
+    public float TotalAttackSpeed { get; private set; }
 
     // ──────────────────────────────────────────
     // MonoBehaviour
@@ -55,8 +56,9 @@ public class PlayerStats : MonoBehaviour
     public void Recalculate()
     {
         CharacterData ch = PlayerInventory.Instance?.SelectedCharacter;
-        int attack = ch?.baseAttack ?? 1;
-        int health = ch?.baseHealth ?? 3;
+        int   attack      = ch?.baseAttack      ?? 1;
+        int   health      = ch?.baseHealth      ?? 3;
+        float attackSpeed = ch?.baseAttackSpeed ?? 1f;
 
         foreach (ItemType slot in Enum.GetValues(typeof(ItemType)))
         {
@@ -67,11 +69,13 @@ public class PlayerStats : MonoBehaviour
                 continue;
             }
 
-            attack += item.attackBonus;
-            health += item.healthBonus;
+            attack      += item.attackBonus;
+            health      += item.healthBonus;
+            attackSpeed += item.attackSpeedBonus / 100f;
         }
 
-        TotalAttack = attack;
-        TotalHealth = health;
+        TotalAttack      = attack;
+        TotalHealth      = health;
+        TotalAttackSpeed = attackSpeed;
     }
 }

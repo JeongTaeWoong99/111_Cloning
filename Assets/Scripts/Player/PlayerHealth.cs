@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
@@ -15,17 +16,23 @@ public class PlayerHealth : MonoBehaviour
     private int _maxHealth = 3;
 
     // ── Properties ───────────────────────────────────────────────
-    public int CurrentHealth { get; private set; }
-    public int MaxHealth     => _maxHealth;
+    public int  CurrentHealth { get; private set; }
+    public int  MaxHealth     => _maxHealth;
+    public bool IsDead        => _isDead;
 
     // ── Events ────────────────────────────────────────────────────
     public event Action      OnDied;
     public event Action<int> OnHealthChanged;
 
+    // ── Fields ────────────────────────────────────────────────────
+    private bool           _isDead;
+    private PlayerAnimator _playerAnimator;
+
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Awake()
     {
-        Instance = this;
+        Instance        = this;
+        _playerAnimator = GetComponent<PlayerAnimator>();
 
         // 장비 스탯이 있으면 그 값으로 최대 체력 초기화, 없으면 Inspector 기본값 사용
         int maxFromStats = PlayerStats.Instance != null
@@ -42,7 +49,8 @@ public class PlayerHealth : MonoBehaviour
     /// </summary>
     public void TakeDamage(int amount)
     {
-        if (CurrentHealth <= 0)
+        // 사망 처리 중 중복 데미지 차단
+        if (_isDead)
         {
             return;
         }
@@ -52,8 +60,17 @@ public class PlayerHealth : MonoBehaviour
 
         if (CurrentHealth <= 0)
         {
+            _isDead = true;
             OnDied?.Invoke();
-            GameManager.Instance.SetState(GameState.GameOver);
+            StartCoroutine(DieSequence());
         }
+    }
+
+    // ── Private Methods ───────────────────────────────────────────
+    private IEnumerator DieSequence()
+    {
+        _playerAnimator?.PlayDie();  // Die 애니메이션 재생
+        yield return new WaitForSeconds(1f);
+        GameManager.Instance.SetState(GameState.GameOver);
     }
 }
