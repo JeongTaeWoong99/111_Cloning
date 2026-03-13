@@ -22,21 +22,21 @@ public class SceneController : MonoBehaviour
     public void LoadMain()
     {
         Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(MainSceneIndex);
+        SceneManager.LoadScene(MainSceneIndex);
     }
 
     /// <summary>1_OutGame 씬으로 이동합니다.</summary>
     public void LoadOutGame()
     {
         Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(OutGameSceneIndex);
+        SceneManager.LoadScene(OutGameSceneIndex);
     }
 
     /// <summary>2_Ingame 씬으로 이동합니다.</summary>
     public void LoadInGame()
     {
         Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene(InGameSceneIndex);
+        SceneManager.LoadScene(InGameSceneIndex);
     }
 
     // ──────────────────────────────────────────

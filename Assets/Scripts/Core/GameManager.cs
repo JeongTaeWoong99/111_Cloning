@@ -35,6 +35,14 @@ public class GameManager : MonoBehaviour
         Instance = this;
     }
 
+    private void Start()
+    {
+        if (PlayerStats.Instance != null)
+        {
+            Debug.Log($"[InGame 진입] ATK: {PlayerStats.Instance.TotalAttack} / HP: {PlayerStats.Instance.TotalHealth}");
+        }
+    }
+
     // ── Public Methods ────────────────────────────────────────────
     /// <summary>
     /// 상태를 변경하고 구독자에게 알린다.

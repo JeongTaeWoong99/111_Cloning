@@ -38,7 +38,14 @@ public class PlayerCombat : MonoBehaviour
     private float _dashTimer;
     private float _parryTimer;
 
+    private PlayerAnimator _playerAnimator;
+
     // ── MonoBehaviour ─────────────────────────────────────────────
+    private void Awake()
+    {
+        _playerAnimator = GetComponent<PlayerAnimator>();
+    }
+
     private void Update()
     {
         GameState state = GameManager.Instance.CurrentState;
@@ -77,6 +84,7 @@ public class PlayerCombat : MonoBehaviour
         }
 
         _attackTimer = 0f;
+        _playerAnimator?.PlayAttack();
 
         // 플레이어 오른쪽 방향 범위 안의 적에게 데미지
         Vector2 boxCenter = (Vector2)transform.position + Vector2.right * (_attackRange * 0.5f);
@@ -118,6 +126,7 @@ public class PlayerCombat : MonoBehaviour
         }
 
         _dashTimer = 0f;
+        _playerAnimator?.PlayDash();
 
         Enemy nearest = FindNearestEnemy();
 

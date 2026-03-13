@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Inventory
 {
@@ -19,6 +20,9 @@ namespace Inventory
         [SerializeField, Tooltip("전체 아이템 목록 SO")]
         private ItemDatabase _database;
 
+        [SerializeField, Tooltip("캐릭터 목록 SO")]
+        private CharacterDatabase _characterDatabase;
+
         // ──────────────────────────────────────────
         // Private Fields
         // ──────────────────────────────────────────
@@ -30,12 +34,14 @@ namespace Inventory
         // ──────────────────────────────────────────
         // Properties
         // ──────────────────────────────────────────
-        public IReadOnlyList<ItemData> Items => _items;
+        public IReadOnlyList<ItemData> Items            => _items;
+        public CharacterData           SelectedCharacter { get; private set; }
 
         // ──────────────────────────────────────────
         // Events
         // ──────────────────────────────────────────
         public event Action OnChanged;
+        public event Action OnCharacterChanged;
 
         // ──────────────────────────────────────────
         // MonoBehaviour
@@ -51,7 +57,21 @@ namespace Inventory
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
+            SceneManager.sceneLoaded += OnSceneLoaded;
             Load();
+        }
+
+        private void OnDestroy()
+        {
+            SceneManager.sceneLoaded -= OnSceneLoaded;
+        }
+
+        /// <summary>씬 전환 후 모든 구독자에게 현재 상태를 재발행합니다.</summary>
+        private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            Debug.Log($"[PlayerInventory] 씬 로드: {scene.name} / 캐릭터: {SelectedCharacter?.name ?? "null"} / 무기타입: {SelectedCharacter?.weaponType.ToString() ?? "null"}");
+            OnChanged?.Invoke();
+            OnCharacterChanged?.Invoke();
         }
 
         // ──────────────────────────────────────────
@@ -87,9 +107,19 @@ namespace Inventory
         /// <summary>
         /// 아이템을 지정 슬롯에 장착합니다.
         /// 인벤토리에서 제거되며, 기존 슬롯 아이템은 인벤토리로 이동합니다.
+        /// 무기 슬롯의 경우 캐릭터 무기 타입 불일치 시 false를 반환합니다.
         /// </summary>
-        public void EquipItem(ItemData item, ItemType slot)
+        public bool EquipItem(ItemData item, ItemType slot)
         {
+            // 무기 슬롯: 캐릭터 타입 불일치 시 거부
+            if (slot == ItemType.Weapon
+                && item.weaponType != WeaponType.None
+                && SelectedCharacter != null
+                && item.weaponType != SelectedCharacter.weaponType)
+            {
+                return false;
+            }
+
             // 기존 장착 아이템 → 인벤토리로 이동
             if (_equipped.TryGetValue(slot, out ItemData previousItem) && previousItem != null)
             {
@@ -101,6 +131,7 @@ namespace Inventory
 
             Save();
             OnChanged?.Invoke();
+            return true;
         }
 
         /// <summary>슬롯의 장착 아이템을 해제하고 인벤토리로 이동합니다.</summary>
@@ -122,6 +153,24 @@ namespace Inventory
         public ItemData GetEquipped(ItemType slot)
         {
             return _equipped.TryGetValue(slot, out ItemData item) ? item : null;
+        }
+
+        /// <summary>캐릭터를 선택합니다. 타입이 다른 무기가 장착 중이면 자동 해제합니다.</summary>
+        public void SelectCharacter(CharacterData character)
+        {
+            SelectedCharacter = character;
+
+            // 다른 타입 무기 장착 중이면 자동 해제
+            ItemData weapon = GetEquipped(ItemType.Weapon);
+            if (weapon != null && weapon.weaponType != WeaponType.None
+                && weapon.weaponType != character.weaponType)
+            {
+                UnequipItem(ItemType.Weapon);
+            }
+
+            PlayerPrefs.SetString("selected_character", character.name);
+            PlayerPrefs.Save();
+            OnCharacterChanged?.Invoke();
         }
 
         // ──────────────────────────────────────────
@@ -183,6 +232,27 @@ namespace Inventory
                 ItemData equipped = _database.FindByName(itemName);
 
                 _equipped[slotType] = equipped;
+            }
+
+            // 선택된 캐릭터 복원
+            if (_characterDatabase != null)
+            {
+                string savedCharacter = PlayerPrefs.GetString("selected_character", "");
+                SelectedCharacter = _characterDatabase.FindByName(savedCharacter)
+                    ?? (_characterDatabase.characters?.Count > 0 ? _characterDatabase.characters[0] : null);
+            }
+
+            // 복원된 캐릭터와 무기 타입 불일치 시 해제
+            if (SelectedCharacter != null)
+            {
+                ItemData weapon = GetEquipped(ItemType.Weapon);
+                if (weapon != null
+                    && weapon.weaponType != WeaponType.None
+                    && weapon.weaponType != SelectedCharacter.weaponType)
+                {
+                    _items.Add(weapon);
+                    _equipped[ItemType.Weapon] = null;
+                }
             }
 
             OnChanged?.Invoke();

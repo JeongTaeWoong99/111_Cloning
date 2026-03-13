@@ -15,12 +15,6 @@ public class PlayerStats : MonoBehaviour
     public static PlayerStats Instance { get; private set; }
 
     // ──────────────────────────────────────────
-    // Private Fields
-    // ──────────────────────────────────────────
-    private const int BaseAttack = 1;
-    private const int BaseHealth = 3;
-
-    // ──────────────────────────────────────────
     // Properties
     // ──────────────────────────────────────────
     public int TotalAttack { get; private set; }
@@ -38,9 +32,9 @@ public class PlayerStats : MonoBehaviour
         }
 
         Instance = this;
-        // PlayerInventory가 DontDestroyOnLoad를 처리하므로 이 컴포넌트는 별도 호출 불필요
 
-        PlayerInventory.Instance.OnChanged += Recalculate;
+        PlayerInventory.Instance.OnChanged          += Recalculate;
+        PlayerInventory.Instance.OnCharacterChanged += Recalculate;
         Recalculate();
     }
 
@@ -48,7 +42,8 @@ public class PlayerStats : MonoBehaviour
     {
         if (PlayerInventory.Instance != null)
         {
-            PlayerInventory.Instance.OnChanged -= Recalculate;
+            PlayerInventory.Instance.OnChanged          -= Recalculate;
+            PlayerInventory.Instance.OnCharacterChanged -= Recalculate;
         }
     }
 
@@ -56,11 +51,12 @@ public class PlayerStats : MonoBehaviour
     // Public Methods
     // ──────────────────────────────────────────
 
-    /// <summary>장착 아이템 스탯을 재계산합니다. 장착 변경 시 자동 호출됩니다.</summary>
+    /// <summary>장착 아이템 + 캐릭터 기본 스탯을 재계산합니다. 변경 시 자동 호출됩니다.</summary>
     public void Recalculate()
     {
-        int attack = BaseAttack;
-        int health = BaseHealth;
+        CharacterData ch = PlayerInventory.Instance?.SelectedCharacter;
+        int attack = ch?.baseAttack ?? 1;
+        int health = ch?.baseHealth ?? 3;
 
         foreach (ItemType slot in Enum.GetValues(typeof(ItemType)))
         {

@@ -25,8 +25,5 @@ namespace Inventory
         [Header("무기 전용")]
         [SerializeField, Tooltip("무기 서브 타입 (비무기 아이템은 None)")]
         public WeaponType weaponType;
-
-        [SerializeField, Tooltip("무기 장착 시 적용할 애니메이터 오버라이드 컨트롤러")]
-        public AnimatorOverrideController overrideController;
     }
 }

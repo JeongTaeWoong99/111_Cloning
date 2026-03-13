@@ -18,9 +18,10 @@ public class CameraScrollController : MonoBehaviour
     {
         Vector3 pos = _camera.transform.position;
 
-        while (!Mathf.Approximately(pos.y, targetY))
+        // Lerp Ease-out: 거리에 비례해 감속
+        while (Mathf.Abs(pos.y - targetY) > 0.01f)
         {
-            pos.y = Mathf.MoveTowards(pos.y, targetY, _scrollSpeed * Time.deltaTime);
+            pos.y = Mathf.Lerp(pos.y, targetY, _scrollSpeed * Time.deltaTime);
             _camera.transform.position = pos;
 
             yield return null;
