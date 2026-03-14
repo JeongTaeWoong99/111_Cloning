@@ -1,0 +1,183 @@
+using System.Collections;
+using Inventory;
+using UnityEngine;
+
+/// <summary>
+/// 플레이어 스킬(F키) 실행 핸들러.
+/// 쿨다운 관리·WeaponType 분기·각 스킬 실행을 전담한다.
+/// PlayerCombat.HandleSkill()이 TryExecute()를 호출한다.
+/// </summary>
+public class PlayerSkillHandler : MonoBehaviour
+{
+    public static PlayerSkillHandler Instance { get; private set; }
+
+    // ── Serialized Fields ─────────────────────────────────────────
+    [Header("스킬 공통")]
+    [SerializeField, Tooltip("스킬 쿨다운 (초)"), Range(1f, 30f)]
+    private float _skillCooldown = 10f;
+
+    [SerializeField, Tooltip("스킬 전 연출 대기 (초) — 추후 반짝 이펙트 타이밍"), Range(0f, 2f)]
+    private float _skillDelay = 0.5f;
+
+    [Header("Slash (Sword)")]
+    [SerializeField, Tooltip("전방 히트박스 너비 (m)"), Range(1f, 10f)]
+    private float _slashRange = 4f;
+
+    [Header("Arrow Rain (Bow)")]
+    [SerializeField, Tooltip("발사 화살 수"), Range(5, 30)]
+    private int   _arrowCount = 20;
+
+    [SerializeField, Tooltip("화살 간 발사 딜레이 (초)"), Range(0f, 1f)]
+    private float _arrowInterval = 0.05f;
+
+    [SerializeField, Tooltip("플레이어 Y 기준 스폰 높이 오프셋"), Range(0f, 15f)]
+    private float _arrowRainYOffset = 5f;
+
+    [SerializeField, Tooltip("플레이어 X 기준 왼쪽 스프레드 거리"), Range(0f, 15f)]
+    private float _arrowRainXLeft = 5f;
+
+    [SerializeField, Tooltip("플레이어 X 기준 오른쪽 스프레드 거리"), Range(0f, 15f)]
+    private float _arrowRainXRight = 5f;
+
+    [Header("Clone (Spear)")]
+    [SerializeField, Tooltip("소환할 Clone 프리팹")]
+    private PlayerClone _clonePrefab;
+
+    [SerializeField, Tooltip("플레이어 기준 Clone 스폰 오프셋")]
+    private Vector2 _cloneSpawnOffset = new Vector2(-1.5f, 0f);
+
+    [Header("공통 레이어")]
+    [SerializeField]
+    private LayerMask _enemyLayer;
+
+    // ── Fields ────────────────────────────────────────────────────
+    // float.MaxValue: 시작 시 쿨다운 없이 즉시 사용 가능
+    private float _skillTimer = float.MaxValue;
+
+    // ── MonoBehaviour ─────────────────────────────────────────────
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    private void Update() => _skillTimer += Time.deltaTime;
+
+    // ── Public Methods ────────────────────────────────────────────
+    /// <summary>
+    /// F키 입력 시 PlayerCombat에서 호출. 쿨다운 미충족 시 무시.
+    /// </summary>
+    public void TryExecute()
+    {
+        if (_skillTimer < _skillCooldown) return;
+
+        CharacterData data = PlayerInventory.Instance.SelectedCharacter;
+        if (data == null) return;
+
+        _skillTimer = 0f;
+
+        switch (data.weaponType)
+        {
+            case WeaponType.Sword: StartCoroutine(ExecuteSlash());     break;
+            case WeaponType.Bow:   StartCoroutine(ExecuteArrowRain()); break;
+            case WeaponType.Spear: ExecuteClone();                     break;
+        }
+    }
+
+    // ── 스킬 구현 ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Slash — 0.5초 연출 대기 후 전방 범위에 2× ATK 데미지.
+    /// </summary>
+    private IEnumerator ExecuteSlash()
+    {
+        // 연출 딜레이 동안 물리·애니메이션 정지
+        Physics2D.simulationMode = SimulationMode2D.Script;
+        EnemySpawnManager.Instance.StopMoving();
+        yield return new WaitForSeconds(_skillDelay);
+        // 판정 실행 전 물리·애니메이션 복원
+        Physics2D.simulationMode = SimulationMode2D.FixedUpdate;
+        EnemySpawnManager.Instance.StartMoving();
+
+        float   damage    = PlayerStats.Instance.TotalAttack * 2f;
+        Vector2 boxCenter = (Vector2)transform.position + Vector2.right * (_slashRange * 0.5f);
+        Vector2 boxSize   = new Vector2(_slashRange, 1.5f);
+
+        Collider2D[] hits = Physics2D.OverlapBoxAll(boxCenter, boxSize, 0f, _enemyLayer);
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.TryGetComponent(out Enemy enemy))
+                enemy.TakeDamage(damage);
+        }
+    }
+
+    /// <summary>
+    /// Arrow Rain — 0.5초 대기 후 X 범위에 분산된 화살 20발을 아래로 낙하.
+    /// Arrow는 Z축 -90° 회전으로 로컬 right = 월드 down 방향으로 이동.
+    /// </summary>
+    private IEnumerator ExecuteArrowRain()
+    {
+        // 연출 딜레이 동안 물리·애니메이션 정지
+        Physics2D.simulationMode = SimulationMode2D.Script;
+        EnemySpawnManager.Instance.StopMoving();
+        yield return new WaitForSeconds(_skillDelay);
+        // 판정 실행 전 물리·애니메이션 복원
+        Physics2D.simulationMode = SimulationMode2D.FixedUpdate;
+        EnemySpawnManager.Instance.StartMoving();
+
+        float damage  = PlayerStats.Instance.TotalAttack;
+        float xStart  = transform.position.x - _arrowRainXLeft;
+        float xEnd    = transform.position.x + _arrowRainXRight;
+        float spawnY  = transform.position.y + _arrowRainYOffset;
+
+        for (int i = 0; i < _arrowCount; i++)
+        {
+            GameObject obj = ObjectPoolManager.Instance.Get("RainArrow");
+            Debug.Log("ExecuteArrowRain() => "+ obj.name);
+                
+            if (obj != null && obj.TryGetComponent(out Arrow arrow))
+            {
+                Vector2 spawnPos = new Vector2(Random.Range(xStart, xEnd), spawnY);
+
+                // -90° 회전: 로컬 right = 월드 down → Arrow.Update의 Translate가 비스듬하게 이동
+                obj.transform.rotation = Quaternion.Euler(0f, 0f, -45f);
+                arrow.Initialize(spawnPos, damage, _enemyLayer);
+            }
+
+            yield return new WaitForSeconds(_arrowInterval);
+        }
+    }
+
+    /// <summary>
+    /// Clone — 지정 오프셋 위치에 50% ATK Clone을 즉시 소환.
+    /// </summary>
+    private void ExecuteClone()
+    {
+        if (_clonePrefab == null)
+        {
+            Debug.LogWarning("[SkillHandler] Clone 프리팹이 연결되지 않았습니다.");
+            return;
+        }
+
+        Vector2     spawnPos = (Vector2)transform.position + _cloneSpawnOffset;
+        PlayerClone clone    = Instantiate(_clonePrefab, spawnPos, Quaternion.identity);
+        clone.Initialize(PlayerStats.Instance.TotalAttack * 0.5f, _enemyLayer);
+    }
+
+    // ── Gizmos ────────────────────────────────────────────────────
+    private void OnDrawGizmosSelected()
+    {
+        // Slash 범위
+        Gizmos.color = new Color(1f, 0.5f, 0f, 0.3f);
+        Vector3 slashCenter = transform.position + Vector3.right * (_slashRange * 0.5f);
+        Gizmos.DrawCube(slashCenter, new Vector3(_slashRange, 1.5f, 0f));
+        Gizmos.color = new Color(1f, 0.5f, 0f, 0.8f);
+        Gizmos.DrawWireCube(slashCenter, new Vector3(_slashRange, 1.5f, 0f));
+
+        // Arrow Rain 스폰 영역
+        Gizmos.color = new Color(0f, 1f, 0.5f, 0.5f);
+        float   rainXCenter = transform.position.x + (_arrowRainXRight - _arrowRainXLeft) * 0.5f;
+        float   rainWidth   = _arrowRainXLeft + _arrowRainXRight;
+        Vector3 rainCenter  = new Vector3(rainXCenter, transform.position.y + _arrowRainYOffset, 0f);
+        Gizmos.DrawWireCube(rainCenter, new Vector3(rainWidth, 0.2f, 0f));
+    }
+}

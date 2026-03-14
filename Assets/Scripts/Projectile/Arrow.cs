@@ -15,6 +15,7 @@ public class Arrow : MonoBehaviour
     private float     _damage;
     private LayerMask _enemyLayer;
     private Coroutine _lifetimeRoutine;
+    private bool      _isReturned;
 
     // ── Public Methods ────────────────────────────────────────────
     /// <summary>풀에서 꺼낸 직후 호출하여 위치·데미지를 초기화하고 수명 타이머를 시작한다.</summary>
@@ -23,6 +24,7 @@ public class Arrow : MonoBehaviour
         transform.position = position;
         _damage     = damage;
         _enemyLayer = enemyLayer;
+        _isReturned = false;
 
         if (_lifetimeRoutine != null) StopCoroutine(_lifetimeRoutine);
         _lifetimeRoutine = StartCoroutine(ReturnAfterLifetime());
@@ -30,13 +32,28 @@ public class Arrow : MonoBehaviour
 
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Update()
-        => transform.Translate(Vector2.right * _speed * Time.deltaTime);
+        => transform.Translate(Vector2.right * (_speed * Time.deltaTime));
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if ((_enemyLayer.value & (1 << other.gameObject.layer)) == 0) return;
-        if (other.TryGetComponent(out Enemy enemy)) enemy.TakeDamage(_damage);
-        ReturnToPool();
+        int hitLayer = 1 << other.gameObject.layer;
+
+        if ((hitLayer & _enemyLayer.value) != 0)
+        {
+            // 적 충돌 — 데미지 적용 후 반환
+            if (other.TryGetComponent(out Enemy enemy))
+                enemy.TakeDamage(_damage);
+
+            ReturnToPool();
+            return;
+        }
+
+        if (other.gameObject.layer == 0)
+        {
+            // Default 레이어(지형 등) 충돌 — 데미지 없이 반환
+            // TODO: 착탄 이펙트 재생
+            ReturnToPool();
+        }
     }
 
     // ── Private Methods ───────────────────────────────────────────
@@ -48,6 +65,9 @@ public class Arrow : MonoBehaviour
 
     private void ReturnToPool()
     {
+        if (_isReturned) return;
+        _isReturned = true;
+
         if (_lifetimeRoutine != null)
         {
             StopCoroutine(_lifetimeRoutine);

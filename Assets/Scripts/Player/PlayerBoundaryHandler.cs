@@ -78,6 +78,8 @@ public class PlayerBoundaryHandler : MonoBehaviour
     {
         _isPinned    = false;
         _isLaunching = true;
+        // AddForce·KnockbackEnemies가 물리 복원 이후에 실행되어야 하므로 먼저 복원
+        Physics2D.simulationMode = SimulationMode2D.FixedUpdate;
         GameManager.Instance.SetState(GameState.Combat);
 
         // 45도 방향 = (right + up).normalized
@@ -138,5 +140,7 @@ public class PlayerBoundaryHandler : MonoBehaviour
         PlayerHealth.Instance.TakeDamage(1);
         PlayerMover.Instance.StopImmediate();
         EnemySpawnManager.Instance.StopMoving();
+        // Pinned 동안 물리 시뮬레이션 완전 정지
+        Physics2D.simulationMode = SimulationMode2D.Script;
     }
 }

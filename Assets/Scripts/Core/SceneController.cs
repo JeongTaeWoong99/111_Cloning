@@ -39,31 +39,9 @@ public class SceneController : MonoBehaviour
         SceneManager.LoadScene(InGameSceneIndex);
     }
 
-    // ──────────────────────────────────────────
-    // 퍼즈 / 재개
-    // ──────────────────────────────────────────
-
-    /// <summary>게임을 일시정지합니다 (Time.timeScale = 0).</summary>
-    public void Pause()
-    {
-        Time.timeScale = 0f;
-    }
-
-    /// <summary>일시정지를 해제합니다 (Time.timeScale = 1).</summary>
-    public void Resume()
-    {
-        Time.timeScale = 1f;
-    }
-
-    // ──────────────────────────────────────────
-    // 종료
-    // ──────────────────────────────────────────
-
     /// <summary>게임을 종료합니다. 퍼즈 상태에서 종료해도 정상 처리됩니다.</summary>
     public void Quit()
     {
-        // 퍼즈 상태로 종료 시 timeScale 초기화
-        Time.timeScale = 1f;
         Application.Quit();
     }
 }

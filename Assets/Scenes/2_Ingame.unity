@@ -182,7 +182,11 @@ MonoBehaviour:
   _entries:
   - id: Arrow
     prefab: {fileID: 52080682861422058, guid: e07a7a9e6f47e944f89d7095ad93d8c9, type: 3}
-    defaultCapacity: 10
+    defaultCapacity: 20
+    maxSize: 50
+  - id: RainArrow
+    prefab: {fileID: 52080682861422058, guid: 0cf8965945d9fd248813ad74782f194b, type: 3}
+    defaultCapacity: 20
     maxSize: 50
 --- !u!4 &44493903
 Transform:
@@ -2002,6 +2006,7 @@ GameObject:
   - component: {fileID: 2142634749}
   - component: {fileID: 2142634748}
   - component: {fileID: 2142634751}
+  - component: {fileID: 2142634752}
   m_Layer: 9
   m_Name: Player
   m_TagString: Untagged
@@ -2254,6 +2259,31 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAnimator
   _defaultController: {fileID: 22100000, guid: c56637754146f0f468125220542ff1e2, type: 2}
+--- !u!114 &2142634752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2142634736}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84dc9feba43a1cc41b789b8ea524557a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSkillHandler
+  _skillCooldown: 2
+  _skillDelay: 0.5
+  _slashRange: 6
+  _arrowCount: 20
+  _arrowInterval: 0.05
+  _arrowRainYOffset: 5
+  _arrowRainXLeft: 2
+  _arrowRainXRight: 6
+  _clonePrefab: {fileID: 0}
+  _cloneSpawnOffset: {x: -1.5, y: 0}
+  _enemyLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

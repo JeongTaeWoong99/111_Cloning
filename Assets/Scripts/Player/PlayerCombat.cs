@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using Inventory;
 using UnityEngine;
 
 /// <summary>
@@ -209,17 +208,12 @@ public class PlayerCombat : MonoBehaviour
         PlayerBoundaryHandler.Instance.CounterattackSkill();
     }
 
-    /// <summary>
-    /// F키 스킬 입력 처리 — 스킬 내부 로직은 추후 구현. 현재는 Debug.Log만 출력.
-    /// </summary>
     private void HandleSkill()
     {
-        if (!Input.GetKeyDown(KeyCode.F)) return;
-
-        CharacterData data = PlayerInventory.Instance.SelectedCharacter;
-        if (data == null) return;
-
-        Debug.Log($"[스킬] {data.characterName} — {data.skillName} 사용");
+        if (!Input.GetKeyDown(KeyCode.F))  return;
+        if (PlayerMover.Instance.IsMoving) return;  // 대쉬/런치 중 방지
+        
+        PlayerSkillHandler.Instance.TryExecute();
     }
 
     private Enemy FindNearestEnemy()
@@ -284,6 +278,9 @@ public class PlayerCombat : MonoBehaviour
     public void OnArrowSpawn()
     {
         GameObject obj = ObjectPoolManager.Instance.Get("Arrow");
+        
+        Debug.Log("OnArrowSpawn() => "+ obj.name);
+        
         if (obj != null && obj.TryGetComponent(out Arrow arrow))
             arrow.Initialize(transform.position, PlayerStats.Instance?.TotalAttack ?? 1f, _enemyLayer);
     }

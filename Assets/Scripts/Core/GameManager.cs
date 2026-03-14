@@ -36,11 +36,6 @@ public class GameManager : MonoBehaviour
         Instance = this;
     }
 
-    private void Start()
-    {
-        // 인게임 진입 시점 스탯 확인은 PlayerStats.Instance.TotalAttack / TotalHealth로 조회
-    }
-
     // ── Public Methods ────────────────────────────────────────────
     /// <summary>
     /// 상태를 변경하고 구독자에게 알린다.
