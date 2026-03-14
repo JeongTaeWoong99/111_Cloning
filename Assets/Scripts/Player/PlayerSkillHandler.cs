@@ -52,7 +52,8 @@ public class PlayerSkillHandler : MonoBehaviour
 
     // ── Fields ────────────────────────────────────────────────────
     // float.MaxValue: 시작 시 쿨다운 없이 즉시 사용 가능
-    private float _skillTimer = float.MaxValue;
+    private float       _skillTimer  = float.MaxValue;
+    private PlayerClone _activeClone;
 
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Awake()
@@ -69,7 +70,7 @@ public class PlayerSkillHandler : MonoBehaviour
     public void TryExecute()
     {
         if (_skillTimer < _skillCooldown) return;
-
+        
         CharacterData data = PlayerInventory.Instance.SelectedCharacter;
         if (data == null) return;
 
@@ -79,7 +80,7 @@ public class PlayerSkillHandler : MonoBehaviour
         {
             case WeaponType.Sword: StartCoroutine(ExecuteSlash());     break;
             case WeaponType.Bow:   StartCoroutine(ExecuteArrowRain()); break;
-            case WeaponType.Spear: ExecuteClone();                     break;
+            case WeaponType.Spear: StartCoroutine(ExecuteClone());      break;
         }
     }
 
@@ -144,19 +145,30 @@ public class PlayerSkillHandler : MonoBehaviour
     }
 
     /// <summary>
-    /// Clone — 지정 오프셋 위치에 50% ATK Clone을 즉시 소환.
+    /// Clone — 0.5초 연출 대기 후 50% ATK Clone 소환.
     /// </summary>
-    private void ExecuteClone()
+    private IEnumerator ExecuteClone()
     {
         if (_clonePrefab == null)
         {
             Debug.LogWarning("[SkillHandler] Clone 프리팹이 연결되지 않았습니다.");
-            return;
+            yield break;
         }
 
-        Vector2     spawnPos = (Vector2)transform.position + _cloneSpawnOffset;
-        PlayerClone clone    = Instantiate(_clonePrefab, spawnPos, Quaternion.identity);
-        clone.Initialize(PlayerStats.Instance.TotalAttack * 0.5f, _enemyLayer);
+        // Skill 상태(timeScale=0)로 전체 freeze
+        GameManager.Instance.SetState(GameState.Skill);
+        yield return new WaitForSecondsRealtime(_skillDelay);
+        // 소환 전 Combat 복귀(timeScale=1)
+        GameManager.Instance.SetState(GameState.Combat);
+
+        // 기존 클론이 살아있으면 제거 — 중복 생성 방지
+        if (_activeClone != null)
+            Destroy(_activeClone.gameObject);
+
+        // 플레이어 자식으로 생성 → 플레이어를 따라다님
+        _activeClone = Instantiate(_clonePrefab, transform);
+        _activeClone.transform.localPosition = _cloneSpawnOffset;
+        _activeClone.Initialize(PlayerStats.Instance.TotalAttack * 0.5f, _enemyLayer);
     }
 
     // ── Gizmos ────────────────────────────────────────────────────

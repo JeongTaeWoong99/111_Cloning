@@ -70,7 +70,9 @@ public class PlayerHealth : MonoBehaviour
     private IEnumerator DieSequence()
     {
         _playerAnimator?.PlayDie();  // Die 애니메이션 재생
+        
         yield return new WaitForSeconds(1f);
+        
         GameManager.Instance.SetState(GameState.GameOver);
     }
 }

@@ -46,14 +46,8 @@ public class PlayerCombat : MonoBehaviour
     {
         GameState state = GameManager.Instance.CurrentState;
 
-        // 사망 중(Die 애니메이션 ~ GameOver 전환 사이) 또는 전투 불가 상태
-        if (PlayerHealth.Instance.IsDead        ||
-            state == GameState.Cleared          ||
-            state == GameState.Transitioning    ||
-            state == GameState.Entering         ||
-            state == GameState.Skill            ||
-            state == GameState.Dash             ||
-            state == GameState.GameOver)
+        // 사망 중(Die 애니메이션 ~ GameOver 전환 사이) 또는 전투 입력 중단 상태
+        if (PlayerHealth.Instance.IsDead || GameManager.Instance.ShouldInterruptCombat)
         {
             if (_isAttacking) StopAttack();
             return;
@@ -228,6 +222,9 @@ public class PlayerCombat : MonoBehaviour
 
         foreach (Enemy enemy in enemies)
         {
+            // 사망 중인 적(Die 애니메이션 재생 중) 제외
+            if (enemy.IsDying) continue;
+
             float dist = Mathf.Abs(enemy.transform.position.x - transform.position.x);
 
             if (dist < minDist)

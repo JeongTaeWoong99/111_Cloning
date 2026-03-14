@@ -1,15 +1,17 @@
+using System.Collections;
 using UnityEngine;
 
 /// <summary>
 /// Spear 스킬로 소환되는 Clone 오브젝트.
-/// 플레이어가 A키를 누르면 Attack, 떼면 Idle로 전환한다.
+/// 플레이어가 Attack 애니메이션에 진입하면 클론도 1회 공격 후 Idle로 복귀한다.
+/// 클론의 공격 속도는 플레이어와 독립적으로 _attackDuration으로 결정된다.
 /// _duration 경과 후 스스로 Destroy된다.
 /// </summary>
 public class PlayerClone : MonoBehaviour
 {
     // ── Serialized Fields ─────────────────────────────────────────
-    [SerializeField, Tooltip("공격 판정 간격 (초)"), Range(0.1f, 5f)]
-    private float _attackInterval = 0.5f;
+    [SerializeField, Tooltip("1회 공격 지속 시간 (초) — 클론 자체 공격 속도"), Range(0.1f, 5f)]
+    private float _attackDuration = 0.5f;
 
     [SerializeField, Tooltip("히트박스 너비 (m)"), Range(0.1f, 5f)]
     private float _attackRange = 3f;
@@ -21,23 +23,26 @@ public class PlayerClone : MonoBehaviour
     private Animator _animator;
 
     // ── Fields ────────────────────────────────────────────────────
-    private float     _damage;
-    private LayerMask _enemyLayer;
-    private float     _lifeTimer;
-    private float     _attackTimer;
-    private string    _currentState;
+    private float          _damage;
+    private LayerMask      _enemyLayer;
+    private float          _lifeTimer;
+    private string         _currentState;
+    private bool           _isAttacking;
+    private PlayerAnimator _playerAnimator;
 
     // ── Public Methods ────────────────────────────────────────────
     /// <summary>
     /// 소환 직후 PlayerSkillHandler에서 호출하여 데미지·레이어를 설정한다.
+    /// 부모(플레이어)의 PlayerAnimator를 자동으로 참조한다.
     /// </summary>
     public void Initialize(float damage, LayerMask enemyLayer)
     {
-        _damage       = damage;
-        _enemyLayer   = enemyLayer;
-        _lifeTimer    = 0f;
-        _attackTimer  = 0f;
-        _currentState = string.Empty;
+        _damage         = damage;
+        _enemyLayer     = enemyLayer;
+        _lifeTimer      = 0f;
+        _currentState   = string.Empty;
+        _isAttacking    = false;
+        _playerAnimator = GetComponentInParent<PlayerAnimator>();
 
         SetAnimatorState("Idle");
     }
@@ -52,27 +57,30 @@ public class PlayerClone : MonoBehaviour
             return;
         }
 
-        bool playerAttacking = Input.GetKey(KeyCode.A);
+        // 공격 코루틴 실행 중이면 대기
+        if (_isAttacking) return;
 
-        SetAnimatorState(playerAttacking ? "Attack" : "Idle");
-
-        if (playerAttacking)
-        {
-            _attackTimer += Time.deltaTime;
-            if (_attackTimer >= _attackInterval)
-            {
-                _attackTimer = 0f;
-                Attack();
-            }
-        }
-        else
-        {
-            // A키 뗄 때 타이머 리셋 — 재입력 시 즉시 첫 타격 방지
-            _attackTimer = 0f;
-        }
+        // 플레이어가 Attack 상태일 때만 1회 공격 시작
+        if (_playerAnimator != null && _playerAnimator.IsAttacking)
+            StartCoroutine(AttackOnce());
     }
 
     // ── Private Methods ───────────────────────────────────────────
+    /// <summary>
+    /// Attack 애니메이션을 1회 재생하고 판정 후 Idle로 복귀한다.
+    /// </summary>
+    private IEnumerator AttackOnce()
+    {
+        _isAttacking = true;
+        SetAnimatorState("Attack");
+        Attack();
+
+        yield return new WaitForSeconds(_attackDuration);
+
+        SetAnimatorState("Idle");
+        _isAttacking = false;
+    }
+
     private void Attack()
     {
         Vector2      boxCenter = (Vector2)transform.position + Vector2.right * (_attackRange * 0.5f);

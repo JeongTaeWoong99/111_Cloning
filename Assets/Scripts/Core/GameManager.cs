@@ -38,6 +38,13 @@ public class GameManager : MonoBehaviour
         Instance = this;
     }
 
+    // ── Properties (헬퍼) ─────────────────────────────────────────
+    /// <summary>공격·대쉬·스킬 등 전투 입력이 강제 중단되어야 하는 상태.</summary>
+    public bool ShouldInterruptCombat =>
+        CurrentState != GameState.Combat  &&
+        CurrentState != GameState.Pinned  &&
+        CurrentState != GameState.Reward;
+
     // ── Public Methods ────────────────────────────────────────────
     /// <summary>
     /// 상태를 변경하고 구독자에게 알린다.

@@ -2358,8 +2358,8 @@ MonoBehaviour:
   _arrowRainYOffset: 5
   _arrowRainXLeft: 2
   _arrowRainXRight: 6
-  _clonePrefab: {fileID: 0}
-  _cloneSpawnOffset: {x: -1.5, y: 0}
+  _clonePrefab: {fileID: 3909503352595624172, guid: 6b9ee40b1b0f0874288cbb71b03eb5bf, type: 3}
+  _cloneSpawnOffset: {x: 0.75, y: 0.75}
   _enemyLayer:
     serializedVersion: 2
     m_Bits: 64

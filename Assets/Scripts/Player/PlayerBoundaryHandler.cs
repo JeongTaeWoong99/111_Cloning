@@ -133,11 +133,17 @@ public class PlayerBoundaryHandler : MonoBehaviour
         {
             return;
         }
-
+        
         _isPinned = true;
-        // SetState(Pinned)가 timeScale=0 설정 → 물리·애니메이션 자동 freeze
-        GameManager.Instance.SetState(GameState.Pinned);
-        PlayerHealth.Instance.TakeDamage(1);
         PlayerMover.Instance.StopImmediate();
+
+        // 데미지 먼저 적용 — 이 시점 timeScale=1이므로 DieSequence의 WaitForSeconds가 정상 동작
+        PlayerHealth.Instance.TakeDamage(1);
+
+        // 사망했으면 Pinned 진입 생략 — DieSequence가 1초 후 GameOver를 처리
+        if (PlayerHealth.Instance.IsDead) return;
+
+        // 생존이면 Pinned 진입 → timeScale=0 freeze
+        GameManager.Instance.SetState(GameState.Pinned);
     }
 }

@@ -116,6 +116,9 @@ public class PlayerAnimator : MonoBehaviour
 
     public void ResetSpeed() => _animator.speed = 1f;
 
+    /// <summary>현재 Attack 애니메이션을 재생 중인지 여부.</summary>
+    public bool IsAttacking => _animator.GetCurrentAnimatorStateInfo(0).IsName("Attack");
+
     // ──────────────────────────────────────────
     // Private Methods
     // ──────────────────────────────────────────
