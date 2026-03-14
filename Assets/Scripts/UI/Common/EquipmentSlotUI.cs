@@ -48,6 +48,8 @@ namespace UI
         /// <summary>슬롯에 아이템 UI를 배치하고 캐시를 갱신합니다.</summary>
         public void SetItem(ItemUI itemUI)
         {
+            if (_cachedItem != null && _cachedItem != itemUI)
+                Destroy(_cachedItem.gameObject);  // 기존 아이템 파괴 (중복 방지)
             _cachedItem = itemUI;
             itemUI.transform.SetParent(transform);
             itemUI.transform.localPosition = Vector3.zero;
@@ -68,17 +70,10 @@ namespace UI
         // ──────────────────────────────────────────
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (_background == null)
-            {
-                return;
-            }
+            if (_background == null) return;
 
             ItemUI dragging = eventData.pointerDrag?.GetComponent<ItemUI>();
-
-            if (dragging == null)
-            {
-                return;
-            }
+            if (dragging == null) return;
 
             // 아이템 타입 불일치
             if (dragging.Data.type != _slotType)
@@ -100,9 +95,7 @@ namespace UI
         public void OnPointerExit(PointerEventData eventData)
         {
             if (_background != null)
-            {
                 _background.color = DefaultColor;
-            }
         }
 
         // ──────────────────────────────────────────
@@ -111,34 +104,27 @@ namespace UI
         public void OnDrop(PointerEventData eventData)
         {
             ItemUI droppedItemUI = eventData.pointerDrag?.GetComponent<ItemUI>();
-
-            if (droppedItemUI == null)
-            {
-                return;
-            }
+            if (droppedItemUI == null) return;
 
             // 아이템 타입 불일치 → DraggableUI가 OnEndDrag에서 복귀 처리
-            if (droppedItemUI.Data.type != _slotType)
-            {
-                return;
-            }
+            if (droppedItemUI.Data.type != _slotType) return;
 
             // 무기 슬롯: 캐릭터 타입 불일치
-            if (_slotType == ItemType.Weapon && IsWeaponTypeMismatch(droppedItemUI.Data))
+            if (_slotType == ItemType.Weapon && IsWeaponTypeMismatch(droppedItemUI.Data)) return;
+
+            // 소스 인벤토리 슬롯 인덱스 추출
+            DraggableUI draggable = droppedItemUI.GetComponent<DraggableUI>();
+            int sourceSlotIndex = -1;
+            if (draggable.PreviousParent != null
+                && draggable.PreviousParent.TryGetComponent(out InventorySlotUI sourceSlot))
             {
-                return;
+                sourceSlotIndex = sourceSlot.Index;
             }
 
-            // 드롭 성공 마킹 → OnEndDrag에서 원본 ItemUI 제거
-            droppedItemUI.GetComponent<DraggableUI>().NotifyDropped();
+            draggable.NotifyDropped();
+            PlayerInventory.Instance.EquipItem(droppedItemUI.Data, _slotType, sourceSlotIndex);
 
-            PlayerInventory.Instance.EquipItem(droppedItemUI.Data, _slotType);
-            // Refresh가 새 ItemUI를 슬롯에 생성하므로 SetItem 불필요
-
-            if (_background != null)
-            {
-                _background.color = DefaultColor;
-            }
+            if (_background != null) _background.color = DefaultColor;
         }
 
         // ──────────────────────────────────────────
@@ -148,10 +134,8 @@ namespace UI
         private bool IsWeaponTypeMismatch(ItemData item)
         {
             CharacterData ch = PlayerInventory.Instance.SelectedCharacter;
-            bool mismatch = ch != null && item.weaponType != WeaponType.None
-                                          && item.weaponType != ch.weaponType;
-
-            return mismatch;
+            return ch != null && item.weaponType != WeaponType.None
+                              && item.weaponType != ch.weaponType;
         }
     }
 }

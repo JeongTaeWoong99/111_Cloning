@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Inventory.ItemData
   displayName: W_Bow_3
   type: 0
-  icon: {fileID: 21300000, guid: e59cf04fb0636794cb011216c538c8ed, type: 3}
+  icon: {fileID: 21300000, guid: 2bd1e260113e10148a149749581232d3, type: 3}
   attackBonus: 3
   healthBonus: 3
   attackSpeedBonus: 60

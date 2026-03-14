@@ -1,5 +1,7 @@
 using System.Collections;
+using System.Collections.Generic;
 using Inventory;
+using UI;
 using UnityEngine;
 
 namespace UI.OutGame
@@ -55,21 +57,28 @@ namespace UI.OutGame
         // ──────────────────────────────────────────
         private void Awake()
         {
+            // 프리팹 내장 InventorySlotUI와 씬에서 추가된 InventorySlotUI가 중복될 경우
+            // _inventorySlots에 포함되지 않은 나머지 컴포넌트를 비활성화
+            foreach (InventorySlotUI slot in _inventorySlots)
+            {
+                InventorySlotUI[] all = slot.GetComponents<InventorySlotUI>();
+                foreach (InventorySlotUI dup in all)
+                {
+                    if (dup != slot) dup.enabled = false;
+                }
+            }
+
             // Start보다 먼저 구독해야 InventoryInitializer.Start()의 AddItem 이벤트를 놓치지 않음
             PlayerInventory.Instance.OnChanged += RequestRefresh;
 
             if (_equipmentPanel != null)
-            {
                 _equipmentPanel.SetActive(false);
-            }
         }
 
         private void OnDestroy()
         {
             if (PlayerInventory.Instance != null)
-            {
                 PlayerInventory.Instance.OnChanged -= RequestRefresh;
-            }
         }
 
         private void Start()
@@ -81,6 +90,7 @@ namespace UI.OutGame
         private void LateUpdate()
         {
             if (!_isDirty) return;
+            if (DraggableUI.IsDragging) return;  // 드래그 중에는 Refresh 지연
             _isDirty = false;
             // 패널이 열려있을 때만 즉시 Refresh — 닫혀있으면 Open() 시점에 Refresh
             if (IsOpen) Refresh();
@@ -108,12 +118,14 @@ namespace UI.OutGame
         // Private Coroutines
         // ──────────────────────────────────────────
 
-        // 카메라 이동 완료 → 패널 표시
+        // 카메라 이동 완료 → 아이템 정렬 → 패널 표시
         private IEnumerator OpenRoutine()
         {
             if (_cameraScroll != null)
                 yield return StartCoroutine(_cameraScroll.ScrollTo(_openCameraY));
 
+            // 패널 열 때만 아이템을 앞으로 정렬 (이후 드래그&드롭은 위치 유지)
+            PlayerInventory.Instance.CompactItems();
             _equipmentPanel.SetActive(true);
             Refresh();
         }
@@ -135,13 +147,8 @@ namespace UI.OutGame
 
         private void Refresh()
         {
-            if (_equipmentPanel == null)
-            {
-                return;
-            }
+            if (_equipmentPanel == null) return;
 
-            // 패널이 꺼진 상태에서도 데이터를 갱신해둬야
-            // 이후 수동 활성화 또는 Open() 호출 시 즉시 표시됨
             ClearAllSlots();
             PopulateInventorySlots();
             PopulateEquipSlots();
@@ -150,25 +157,22 @@ namespace UI.OutGame
         private void ClearAllSlots()
         {
             foreach (InventorySlotUI slot in _inventorySlots)
-            {
                 slot.ClearItem();
-            }
 
             foreach (EquipmentSlotUI slot in _equipSlots)
-            {
                 slot.ClearItem();
-            }
         }
 
         private void PopulateInventorySlots()
         {
-            var items = PlayerInventory.Instance.Items;
+            IReadOnlyList<ItemData> slots = PlayerInventory.Instance.Slots;
 
-            for (int i = 0; i < items.Count && i < _inventorySlots.Length; i++)
+            for (int i = 0; i < _inventorySlots.Length; i++)
             {
-                // SetItem 경유: 슬롯 캐시(_cachedItem)를 올바르게 갱신
+                if (i >= slots.Count || slots[i] == null) continue;
+
                 ItemUI itemUI = Instantiate(_itemPrefab);
-                itemUI.Initialize(items[i]);
+                itemUI.Initialize(slots[i]);
                 _inventorySlots[i].SetItem(itemUI);
             }
         }
@@ -178,13 +182,8 @@ namespace UI.OutGame
             foreach (EquipmentSlotUI slot in _equipSlots)
             {
                 ItemData equipped = PlayerInventory.Instance.GetEquipped(slot.SlotType);
+                if (equipped == null) continue;
 
-                if (equipped == null)
-                {
-                    continue;
-                }
-
-                // SetItem 경유: 슬롯 캐시(_cachedItem)를 올바르게 갱신
                 ItemUI itemUI = Instantiate(_itemPrefab);
                 itemUI.Initialize(equipped);
                 slot.SetItem(itemUI);

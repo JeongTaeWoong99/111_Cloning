@@ -72,6 +72,7 @@ public class PlayerCombat : MonoBehaviour
 
         HandleAttack();
         HandleDash();
+        HandleCounterattackSkill();
     }
 
     // ── Private Methods ───────────────────────────────────────────
@@ -192,6 +193,20 @@ public class PlayerCombat : MonoBehaviour
         PlayerBoundaryHandler.Instance.Counterattack();
     }
 
+    /// <summary>
+    /// Combat 중 S키 — 쿨다운 기반 반격 스킬. 시간 정지 없이 Launch + 넉백.
+    /// </summary>
+    private void HandleCounterattackSkill()
+    {
+        if (!Input.GetKeyDown(KeyCode.S))  return;
+        if (_parryTimer < _parryCooldown)  return;
+        if (PlayerMover.Instance.IsMoving) return;  // 대쉬/런치 중 방지
+
+        _parryTimer = 0f;
+        StopAttack();
+        PlayerBoundaryHandler.Instance.CounterattackSkill();
+    }
+
     private Enemy FindNearestEnemy()
     {
         IReadOnlyList<Enemy> enemies = EnemySpawnManager.Instance.LivingEnemies;
@@ -249,7 +264,12 @@ public class PlayerCombat : MonoBehaviour
     }
 
     /// <summary>
-    /// Attack 클립의 발사 타이밍에 애니메이션 이벤트로 호출 (원거리: Bow) — 스텁.
+    /// Attack 클립의 발사 타이밍에 애니메이션 이벤트로 호출 (원거리: Bow).
     /// </summary>
-    public void OnArrowSpawn() { /* TODO: 화살 프리팹 생성 */ }
+    public void OnArrowSpawn()
+    {
+        GameObject obj = ObjectPoolManager.Instance.Get("Arrow");
+        if (obj != null && obj.TryGetComponent(out Arrow arrow))
+            arrow.Initialize(transform.position, PlayerStats.Instance?.TotalAttack ?? 1f, _enemyLayer);
+    }
 }

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Inventory.ItemData
   displayName: Helmet_2
   type: 2
-  icon: {fileID: 21300000, guid: ea3359672e8978b448fcca94dea50523, type: 3}
+  icon: {fileID: 21300000, guid: 1205eae88d0951e4790d9d1b1c429d7e, type: 3}
   attackBonus: 2
   healthBonus: 2
   attackSpeedBonus: 20

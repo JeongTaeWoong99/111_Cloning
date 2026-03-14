@@ -88,8 +88,8 @@ public class PlayerStats : MonoBehaviour
         float clipLength = ch?.GetAttackClipLength() ?? 0.5f;
         AttackInterval   = clipLength / TotalAttackSpeed;
 
-        Debug.Log($"[Stats] 씬={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}"
-                + $" | ATK={TotalAttack} HP={TotalHealth}"
-                + $" | 공속배율={TotalAttackSpeed:F3} | 공격인터벌={AttackInterval:F4}s");
+        // Debug.Log($"[Stats] 씬={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}"
+        //         + $" | ATK={TotalAttack} HP={TotalHealth}"
+        //         + $" | 공속배율={TotalAttackSpeed:F3} | 공격인터벌={AttackInterval:F4}s");
     }
 }

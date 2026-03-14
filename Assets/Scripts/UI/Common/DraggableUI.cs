@@ -23,6 +23,7 @@ namespace UI
         // ──────────────────────────────────────────
         // Properties
         // ──────────────────────────────────────────
+        public static bool IsDragging  { get; private set; }
         public Transform PreviousParent => _previousParent;
 
         // ──────────────────────────────────────────
@@ -41,6 +42,7 @@ namespace UI
         // ──────────────────────────────────────────
         public void OnBeginDrag(PointerEventData eventData)
         {
+            IsDragging      = true;
             _wasDropped     = false;
             _previousParent = transform.parent;
 
@@ -73,6 +75,7 @@ namespace UI
 
         public void OnEndDrag(PointerEventData eventData)
         {
+            IsDragging                  = false;
             _canvasGroup.alpha          = 1f;
             _canvasGroup.blocksRaycasts = true;
 
@@ -85,9 +88,7 @@ namespace UI
 
             // 슬롯에 드롭되지 않은 경우 → 이전 부모로 복귀
             if (transform.parent == _rootCanvas.transform)
-            {
                 ReturnToPreviousParent();
-            }
         }
 
         // ──────────────────────────────────────────

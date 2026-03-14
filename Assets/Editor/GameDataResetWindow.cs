@@ -4,12 +4,11 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Tools > 게임 데이터 초기화 에디터 윈도우.
-/// Play 진입 없이 PlayerPrefs 데이터 초기화 및 DB 자동 수집을 수행합니다.
+/// Tools > 게임 개발 편의 기능 에디터
 /// </summary>
 public class GameDataResetWindow : EditorWindow
 {
-    [MenuItem("Tools/게임 데이터 초기화")]
+    [MenuItem("Tools/게임 편의 기능")]
     private static void Open() => GetWindow<GameDataResetWindow>("게임 데이터 초기화");
 
     private void OnGUI()
@@ -41,11 +40,12 @@ public class GameDataResetWindow : EditorWindow
 
     private void ResetInventory()
     {
-        int count = PlayerPrefs.GetInt("inv_count", 0);
-        for (int i = 0; i < count; i++)
+        // 슬롯 위치 기반 저장 방식 (inv_0 ~ inv_24)
+        for (int i = 0; i < 25; i++)
         {
             PlayerPrefs.DeleteKey($"inv_{i}");
         }
+        // 구버전 호환 삭제
         PlayerPrefs.DeleteKey("inv_count");
 
         foreach (ItemType slot in Enum.GetValues(typeof(ItemType)))

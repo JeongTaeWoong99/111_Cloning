@@ -19,6 +19,9 @@ namespace UI.OutGame
         [SerializeField, Tooltip("장비 인벤토리 패널 컨트롤러")]
         private EquipmentPanelController _equipmentPanel;
 
+        [SerializeField, Tooltip("씬 전환 컨트롤러")]
+        private SceneController _sceneController;
+
         // ──────────────────────────────────────────
         // Private Fields
         // ──────────────────────────────────────────
@@ -35,8 +38,11 @@ namespace UI.OutGame
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.I))
+            if (Input.GetKeyDown(KeyCode.I)) // 인벤토리
                 ToggleEquipmentPanel();
+
+            if (Input.GetKeyDown(KeyCode.T)) // 인게임 씬으로 이동
+                _sceneController?.LoadInGame();
         }
 
         // ──────────────────────────────────────────

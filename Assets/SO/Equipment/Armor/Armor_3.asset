@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Inventory.ItemData
   displayName: Armor_3
   type: 1
-  icon: {fileID: 21300000, guid: e2977ea8a166a0c47af9b1ea012ae224, type: 3}
+  icon: {fileID: 21300000, guid: 465ad7aad0f8cbc46a77be2e45ed18b4, type: 3}
   attackBonus: 3
   healthBonus: 3
   attackSpeedBonus: 30

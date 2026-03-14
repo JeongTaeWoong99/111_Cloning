@@ -92,6 +92,21 @@ public class PlayerBoundaryHandler : MonoBehaviour
         StartCoroutine(ClearLaunchFlag());
     }
 
+    /// <summary>
+    /// Combat 중 S키 스킬 — 시간 정지 없이 Launch + 적 넉백만 수행.
+    /// </summary>
+    public void CounterattackSkill()
+    {
+        if (_isLaunching) return;
+        _isLaunching = true;
+
+        Vector2 dir = (Vector2.right + Vector2.up).normalized;
+        PlayerMover.Instance.Launch(dir * _playerLaunchForce, _playerLaunchDuration);
+        EnemySpawnManager.Instance.KnockbackEnemies(dir * _knockbackForce, _knockbackDuration);
+
+        StartCoroutine(ClearLaunchFlag());
+    }
+
     private IEnumerator ClearLaunchFlag()
     {
         yield return new WaitForSeconds(_playerLaunchDuration);

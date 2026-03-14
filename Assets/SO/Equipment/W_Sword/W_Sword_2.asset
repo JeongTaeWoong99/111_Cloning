@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Inventory.ItemData
   displayName: W_Sword_2
   type: 0
-  icon: {fileID: 21300000, guid: b8662f8438caa8b47b5457c9dfe79657, type: 3}
+  icon: {fileID: 21300000, guid: b98f4fb4c5fa17a49991e23f6945b8c3, type: 3}
   attackBonus: 2
   healthBonus: 2
   attackSpeedBonus: 30

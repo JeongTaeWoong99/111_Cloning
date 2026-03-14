@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Inventory.ItemData
   displayName: Ring_3
   type: 3
-  icon: {fileID: 21300000, guid: 0c485e48b36484f4caa7e143ee4c7d17, type: 3}
+  icon: {fileID: 21300000, guid: 7b34170511de78844aad0bad1a0b8910, type: 3}
   attackBonus: 3
   healthBonus: 3
   attackSpeedBonus: 30

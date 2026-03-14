@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 // ─────────────────────────────────────────────────────────────────────────────
 /// <summary>
 /// 한 층에서 사용하는 위치 참조 세트 (A 또는 B).
@@ -41,6 +42,10 @@ public class FloorManager : MonoBehaviour
     [Header("플레이어 위치 세트")]
     [SerializeField] private FloorPositionSet _setA;
     [SerializeField] private FloorPositionSet _setB;
+
+    // ── Events ────────────────────────────────────────────────────
+    /// <summary>층이 시작될 때 현재 층 번호를 전달한다.</summary>
+    public static event Action<int> OnFloorChanged;
 
     // ── Fields ────────────────────────────────────────────────────
     // 층 번호 → 그리드 인스턴스 매핑
@@ -98,6 +103,8 @@ public class FloorManager : MonoBehaviour
     /// </summary>
     private IEnumerator RunFloor()
     {
+        OnFloorChanged?.Invoke(_currentFloor);
+
         FloorPositionSet activeSet  = _useSetA ? _setA : _setB;
         FloorPositionSet standbySet = _useSetA ? _setB : _setA;
 

@@ -15,7 +15,8 @@
       "Bash(do echo:*)",
       "Read(//c/Users/ASUS/Desktop/Unity/Project/111_Cloning/UsersASUSDesktopUnityProject111_CloningAssetsScripts/$dir/**)",
       "Bash(xargs -I {} basename {})",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(find:*)"
     ]
   }
 }
