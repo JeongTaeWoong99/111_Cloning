@@ -1,4 +1,3 @@
-using System;
 using Inventory;
 using UnityEngine;
 
@@ -13,6 +12,9 @@ public class PlayerStats : MonoBehaviour
     // Static
     // ──────────────────────────────────────────
     public static PlayerStats Instance { get; private set; }
+
+    // Enum.GetValues 호출 시 매번 배열이 생성되므로 정적 캐싱
+    private static readonly ItemType[] SlotTypes = (ItemType[])System.Enum.GetValues(typeof(ItemType));
 
     // ──────────────────────────────────────────
     // Properties
@@ -52,7 +54,10 @@ public class PlayerStats : MonoBehaviour
     // Public Methods
     // ──────────────────────────────────────────
 
-    /// <summary>장착 아이템 + 캐릭터 기본 스탯을 재계산합니다. 변경 시 자동 호출됩니다.</summary>
+    /// <summary>
+    /// 장착 아이템 + 캐릭터 기본 스탯을 재계산합니다.
+    /// 변경 시 자동 호출됩니다.
+    /// </summary>
     public void Recalculate()
     {
         CharacterData ch = PlayerInventory.Instance?.SelectedCharacter;
@@ -60,7 +65,7 @@ public class PlayerStats : MonoBehaviour
         int   health      = ch?.baseHealth      ?? 3;
         float attackSpeed = ch?.baseAttackSpeed ?? 1f;
 
-        foreach (ItemType slot in Enum.GetValues(typeof(ItemType)))
+        foreach (ItemType slot in SlotTypes)
         {
             ItemData item = PlayerInventory.Instance.GetEquipped(slot);
 
@@ -73,7 +78,7 @@ public class PlayerStats : MonoBehaviour
             health      += item.healthBonus;
             attackSpeed += item.attackSpeedBonus / 100f;
         }
-
+ 
         TotalAttack      = attack;
         TotalHealth      = health;
         TotalAttackSpeed = attackSpeed;

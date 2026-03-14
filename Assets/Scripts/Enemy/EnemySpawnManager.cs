@@ -204,12 +204,11 @@ public class EnemySpawnManager : MonoBehaviour
 
     private IEnumerator KnockbackEnemiesAsync(Vector2 force, float duration)
     {
-        // 이동 중 _livingEnemies 변경에 대비해 스냅샷 사용
-        List<Enemy> snapshot = new(_livingEnemies);
-
-        foreach (Enemy enemy in snapshot)
+        // ApplyKnockback은 물리 충격만 적용하며 OnEnemyDied를 발생시키지 않으므로
+        // 직접 순회 가능 (역순: 혹시 모를 중간 제거에 안전)
+        for (int i = _livingEnemies.Count - 1; i >= 0; i--)
         {
-            enemy.ApplyKnockback(force, duration);
+            _livingEnemies[i].ApplyKnockback(force, duration);
         }
 
         yield return new WaitForSeconds(duration);

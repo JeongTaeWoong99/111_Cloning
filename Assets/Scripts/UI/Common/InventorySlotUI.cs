@@ -23,13 +23,14 @@ namespace UI
         private static readonly Color HighlightColor = new(1f, 1f, 0.5f, 1f);
         private static readonly Color DefaultColor   = Color.white;
 
-        private Image _background;
+        private Image   _background;
+        private ItemUI  _cachedItem;  // SetItem/ClearItem에서 갱신
 
         // ──────────────────────────────────────────
         // Properties
         // ──────────────────────────────────────────
         public int      Index       => _index;
-        public ItemUI   CurrentItem => GetComponentInChildren<ItemUI>();
+        public ItemUI   CurrentItem => _cachedItem;
 
         // ──────────────────────────────────────────
         // MonoBehaviour
@@ -43,21 +44,21 @@ namespace UI
         // Public Methods
         // ──────────────────────────────────────────
 
-        /// <summary>슬롯에 아이템 UI를 배치합니다.</summary>
+        /// <summary>슬롯에 아이템 UI를 배치하고 캐시를 갱신합니다.</summary>
         public void SetItem(ItemUI itemUI)
         {
+            _cachedItem = itemUI;
             itemUI.transform.SetParent(transform);
             itemUI.transform.localPosition = Vector3.zero;
         }
 
-        /// <summary>슬롯의 아이템 UI를 제거합니다.</summary>
+        /// <summary>슬롯의 아이템 UI를 제거하고 캐시를 초기화합니다.</summary>
         public void ClearItem()
         {
-            ItemUI current = CurrentItem;
-
-            if (current != null)
+            if (_cachedItem != null)
             {
-                Destroy(current.gameObject);
+                Destroy(_cachedItem.gameObject);
+                _cachedItem = null;
             }
         }
 
@@ -116,8 +117,14 @@ namespace UI
 
                 if (sourceParent != null)
                 {
-                    existing.transform.SetParent(sourceParent);
-                    existing.transform.localPosition = Vector3.zero;
+                    // 소스 슬롯이 InventorySlotUI면 SetItem으로 캐시도 함께 갱신
+                    if (sourceParent.TryGetComponent(out InventorySlotUI sourceSlot))
+                        sourceSlot.SetItem(existing);
+                    else
+                    {
+                        existing.transform.SetParent(sourceParent);
+                        existing.transform.localPosition = Vector3.zero;
+                    }
                 }
             }
             else

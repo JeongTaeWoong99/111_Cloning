@@ -76,7 +76,6 @@ public class PlayerBoundaryHandler : MonoBehaviour
     /// </summary>
     public void Counterattack()
     {
-        Debug.Log("[Boundary] Counterattack 실행");
         _isPinned    = false;
         _isLaunching = true;
         GameManager.Instance.SetState(GameState.Combat);
@@ -96,8 +95,8 @@ public class PlayerBoundaryHandler : MonoBehaviour
     private IEnumerator ClearLaunchFlag()
     {
         yield return new WaitForSeconds(_playerLaunchDuration);
+        // 발사 지속 시간 경과 후 플래그 해제 → Update에서 경계 감지 재개
         _isLaunching = false;
-        Debug.Log($"[Boundary] _isLaunching 해제: player.x={transform.position.x:F2} leftBound={Camera.main.ViewportToWorldPoint(Vector3.zero).x + _boundaryXOffset:F2}");
     }
 
     // ── Private Methods ───────────────────────────────────────────
@@ -107,14 +106,13 @@ public class PlayerBoundaryHandler : MonoBehaviour
 
         if (transform.position.x <= leftBound)
         {
-            Debug.Log($"[Boundary] 경계 감지 player.x={transform.position.x:F2} leftBound={leftBound:F2}");
+            // 플레이어가 왼쪽 경계선 돌파 → Pinned 상태 진입
             EnterPinned();
         }
     }
 
     private void EnterPinned()
     {
-        Debug.Log($"[Boundary] EnterPinned — _isPinned={_isPinned}");
         if (_isPinned)
         {
             return;

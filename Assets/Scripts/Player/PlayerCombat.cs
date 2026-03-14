@@ -115,13 +115,11 @@ public class PlayerCombat : MonoBehaviour
     private IEnumerator AttackLoop()
     {
         _isAttacking = true;
-        Debug.Log("[Combat] AttackLoop 시작");
 
         do
         {
             float speed      = PlayerStats.Instance?.TotalAttackSpeed ?? 1f;
             float clipLength = _playerAnimator.GetAttackClipLength();
-            Debug.Log($"[Combat] Attack iter: speed={speed:F2} clip={clipLength:F3}s → wait={clipLength / speed:F3}s");
 
             _playerAnimator.PlayAttack(speed);
             yield return new WaitForSeconds(clipLength / speed);
@@ -133,9 +131,7 @@ public class PlayerCombat : MonoBehaviour
 
         _isAttacking     = false;
         _attackCoroutine = null;
-        Debug.Log($"[Combat] AttackLoop 종료: state={GameManager.Instance.CurrentState}");
-
-        // Combat 상태일 때만 Idle 복귀 (아니면 PlayerAnimator.OnGameStateChanged가 처리)
+        // 루프 종료 후 상태에 따라 Idle 복귀 또는 PlayerAnimator.OnGameStateChanged가 처리
         if (GameManager.Instance.CurrentState == GameState.Combat)
             _playerAnimator.PlayIdle();
     }
@@ -169,7 +165,6 @@ public class PlayerCombat : MonoBehaviour
     {
         _isDashing = true;
         float clip = _playerAnimator.GetClipLength("Dash");
-        Debug.Log($"[Combat] DashSequence 시작: target={target} clipWait={clip:F3}s");
         _playerAnimator.PlayDash();
 
         // 물리 독립 실행 (fire-and-forget)
@@ -178,8 +173,8 @@ public class PlayerCombat : MonoBehaviour
         // 애니메이션 클립 길이만큼만 대기
         yield return new WaitForSeconds(clip);
 
+        // 대쉬 종료 — 이후 상태가 Combat이면 입력에 따라 공격 또는 Idle 복귀
         _isDashing = false;
-        Debug.Log($"[Combat] DashSequence 완료: state={GameManager.Instance.CurrentState}");
 
         // Combat 상태일 때만 전이 (Pinned 등 다른 상태면 무시)
         if (GameManager.Instance.CurrentState != GameState.Combat) yield break;

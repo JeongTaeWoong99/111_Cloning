@@ -37,10 +37,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        if (PlayerStats.Instance != null)
-        {
-            Debug.Log($"[InGame 진입] ATK: {PlayerStats.Instance.TotalAttack} / HP: {PlayerStats.Instance.TotalHealth}");
-        }
+        // 인게임 진입 시점 스탯 확인은 PlayerStats.Instance.TotalAttack / TotalHealth로 조회
     }
 
     // ── Public Methods ────────────────────────────────────────────
@@ -49,7 +46,6 @@ public class GameManager : MonoBehaviour
     /// </summary>
     public void SetState(GameState state)
     {
-        Debug.Log($"[GM] SetState: {CurrentState} → {state}");
         CurrentState = state;
         OnStateChanged?.Invoke(state);
 

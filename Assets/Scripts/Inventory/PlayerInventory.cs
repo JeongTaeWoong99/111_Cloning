@@ -13,6 +13,9 @@ namespace Inventory
         // ──────────────────────────────────────────
         public static PlayerInventory Instance { get; private set; }
 
+        // Enum.GetValues 호출 시 매번 배열이 생성되므로 정적 캐싱
+        private static readonly ItemType[] SlotTypes = (ItemType[])Enum.GetValues(typeof(ItemType));
+
         // ──────────────────────────────────────────
         // [SerializeField] Private Fields
         // ──────────────────────────────────────────
@@ -187,7 +190,7 @@ namespace Inventory
             }
 
             // 장착 슬롯
-            foreach (ItemType slotType in Enum.GetValues(typeof(ItemType)))
+            foreach (ItemType slotType in SlotTypes)
             {
                 string savedName = _equipped.TryGetValue(slotType, out ItemData equippedItem) && equippedItem != null
                     ? equippedItem.name
@@ -225,7 +228,7 @@ namespace Inventory
             }
 
             // 장착 슬롯
-            foreach (ItemType slotType in Enum.GetValues(typeof(ItemType)))
+            foreach (ItemType slotType in SlotTypes)
             {
                 string itemName   = PlayerPrefs.GetString($"equip_{slotType}", "");
                 ItemData equipped = _database.FindByName(itemName);

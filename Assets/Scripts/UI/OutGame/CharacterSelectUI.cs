@@ -71,8 +71,6 @@ namespace UI
 
             CharacterData data = _characters[_currentIndex];
 
-//            Debug.Log($"[CharacterSelect] 선택: {data.name} / 허용 무기타입: {data.weaponType} / Override Controller: {data.overrideController?.name ?? "null"}");
-
             // 미리보기 애니메이터에 캐릭터 고유 컨트롤러 적용 → Idle 자동 재생
             if (_previewAnimator != null)
             {

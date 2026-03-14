@@ -82,7 +82,8 @@ namespace UI.OutGame
         {
             if (!_isDirty) return;
             _isDirty = false;
-            Refresh();
+            // 패널이 열려있을 때만 즉시 Refresh — 닫혀있으면 Open() 시점에 Refresh
+            if (IsOpen) Refresh();
         }
 
         // ──────────────────────────────────────────
@@ -165,9 +166,10 @@ namespace UI.OutGame
 
             for (int i = 0; i < items.Count && i < _inventorySlots.Length; i++)
             {
-                ItemUI itemUI = Instantiate(_itemPrefab, _inventorySlots[i].transform);
+                // SetItem 경유: 슬롯 캐시(_cachedItem)를 올바르게 갱신
+                ItemUI itemUI = Instantiate(_itemPrefab);
                 itemUI.Initialize(items[i]);
-                itemUI.transform.localPosition = Vector3.zero;
+                _inventorySlots[i].SetItem(itemUI);
             }
         }
 
@@ -182,9 +184,10 @@ namespace UI.OutGame
                     continue;
                 }
 
-                ItemUI itemUI = Instantiate(_itemPrefab, slot.transform);
+                // SetItem 경유: 슬롯 캐시(_cachedItem)를 올바르게 갱신
+                ItemUI itemUI = Instantiate(_itemPrefab);
                 itemUI.Initialize(equipped);
-                itemUI.transform.localPosition = Vector3.zero;
+                slot.SetItem(itemUI);
             }
         }
     }

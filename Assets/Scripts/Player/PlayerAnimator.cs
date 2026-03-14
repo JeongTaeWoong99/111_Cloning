@@ -26,7 +26,6 @@ public class PlayerAnimator : MonoBehaviour
     // ──────────────────────────────────────────
     private void Awake()
     {
-        Debug.Log("[PA-1] PlayerAnimator.Awake 진입");
         _animator = GetComponent<Animator>();
 
         // Awake에서 구독: SceneManager.sceneLoaded 이벤트(Awake 이후, Start 이전 발행)를 놓치지 않기 위함
@@ -37,20 +36,18 @@ public class PlayerAnimator : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[PA-2] PlayerInventory.Instance가 null — 이벤트 구독 불가!");
+            Debug.LogWarning("[PA] PlayerInventory.Instance가 null — 이벤트 구독 불가!");
         }
 
-        // Debug.Log("[PA-3] Awake에서 ApplyAnimation 직접 호출");
         ApplyAnimation();
 
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnStateChanged += OnGameStateChanged;
-            Debug.Log("[PA] GameManager 구독 성공");
         }
         else
         {
-            Debug.LogWarning("[PA] GameManager null — OnStateChanged 구독 실패!!!");
+            Debug.LogWarning("[PA] GameManager null — OnStateChanged 구독 실패!");
         }
     }
 
@@ -69,9 +66,9 @@ public class PlayerAnimator : MonoBehaviour
     // ──────────────────────────────────────────
     // Public Methods — 애니메이션 재생
     // ──────────────────────────────────────────
-    public void PlayIdle()  { ResetSpeed(); Debug.Log($"[PA] PlayIdle  (f={Time.frameCount})"); _animator.Play("Idle"); }
-    public void PlayRun()   { ResetSpeed(); Debug.Log($"[PA] PlayRun   (f={Time.frameCount})"); _animator.Play("Run"); }
-    public void PlayDash()  { ResetSpeed(); Debug.Log($"[PA] PlayDash  (f={Time.frameCount})"); _animator.Play("Dash"); }
+    public void PlayIdle()  { ResetSpeed(); _animator.Play("Idle"); }
+    public void PlayRun()   { ResetSpeed(); _animator.Play("Run"); }
+    public void PlayDash()  { ResetSpeed(); _animator.Play("Dash"); }
     public void PlayDie()   { ResetSpeed(); _animator.Play("Die"); }
     public void PlaySkill() { ResetSpeed(); _animator.Play("Skill"); }  // 추후 에셋 준비 후 사용
 
@@ -102,7 +99,6 @@ public class PlayerAnimator : MonoBehaviour
                 string baseName = pair.Key.name.Split('_')[0];
                 if (string.Equals(baseName, stateName, System.StringComparison.OrdinalIgnoreCase))
                 {
-                    Debug.Log($"[PA] GetClipLength({stateName}) = {pair.Value.length:F3}s (key={pair.Key.name})");
                     return pair.Value.length;
                 }
             }
@@ -123,19 +119,15 @@ public class PlayerAnimator : MonoBehaviour
     // ──────────────────────────────────────────
     // Private Methods
     // ──────────────────────────────────────────
-
     private void OnGameStateChanged(GameState state)
     {
-        Debug.Log($"[PA] OnStateChanged({state})");
         switch (state)
         {
             case GameState.Entering:
             case GameState.Cleared:
-                Debug.Log("[PA] → PlayRun");
                 PlayRun();   // 등장/퇴장 이동 중 Run
                 break;
             case GameState.Combat:
-                Debug.Log("[PA] → PlayIdle");
                 PlayIdle();  // 전투 진입 시 초기 Idle
                 break;
             // Pinned / Transitioning / GameOver: 다른 시스템이 처리
@@ -144,11 +136,8 @@ public class PlayerAnimator : MonoBehaviour
 
     private void ApplyAnimation()
     {
-        // Debug.Log("[PA-4] ApplyAnimation 호출됨");
         CharacterData ch = PlayerInventory.Instance?.SelectedCharacter;
         AnimatorOverrideController controller = ch?.overrideController ?? _defaultController;
-
-        // Debug.Log($"[PA-5] 캐릭터: {ch?.name ?? "null"} / 컨트롤러: {controller?.name ?? "null"}");
 
         if (controller == null)
         {

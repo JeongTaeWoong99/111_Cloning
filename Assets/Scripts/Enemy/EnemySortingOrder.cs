@@ -19,6 +19,7 @@ public class EnemySortingOrder : MonoBehaviour
     // Private Fields
     // ──────────────────────────────────────────
     private SpriteRenderer _renderer;
+    private float          _lastX = float.MinValue;  // 이전 프레임 x 위치 캐시
 
     // ──────────────────────────────────────────
     // MonoBehaviour
@@ -30,7 +31,12 @@ public class EnemySortingOrder : MonoBehaviour
 
     private void LateUpdate()
     {
-        // X가 작을수록(왼쪽) sortingOrder 높음(앞)
-        _renderer.sortingOrder = Mathf.RoundToInt(-transform.position.x * _multiplier);
+        float x = transform.position.x;
+
+        // x 위치가 변경됐을 때만 sortingOrder 갱신 (X가 작을수록(왼쪽) 앞)
+        if (Mathf.Approximately(x, _lastX)) return;
+
+        _lastX = x;
+        _renderer.sortingOrder = Mathf.RoundToInt(-x * _multiplier);
     }
 }
