@@ -399,6 +399,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnManager
   _enemyPrefab: {fileID: 6118449324204759450, guid: 699d47d44f92df545bd304a132a7aa4d, type: 3}
   _floorConfigs:
+  - {fileID: 11400000, guid: 676b2a80edf3a1d4bb0c403b788738d8, type: 2}
   - {fileID: 11400000, guid: 62a7582501c23184eaf137296ccc61da, type: 2}
   - {fileID: 11400000, guid: ba646f07ba9f4144e9f441f63b55623a, type: 2}
   - {fileID: 11400000, guid: b0d0ab4eb4975ab4b980e077b9d2e637, type: 2}
@@ -419,6 +420,37 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &350054483
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 350054484}
+  m_Layer: 0
+  m_Name: A Box Spawn Pos
+  m_TagString: Untagged
+  m_Icon: {fileID: 3936346786652291628, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &350054484
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 350054483}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.25, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1007362371}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &352736691
 GameObject:
@@ -1046,6 +1078,7 @@ Transform:
   m_Children:
   - {fileID: 2134716023}
   - {fileID: 1340229467}
+  - {fileID: 350054484}
   - {fileID: 663231190}
   - {fileID: 1391641283}
   m_Father: {fileID: 0}
@@ -1142,6 +1175,52 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: fd2ae5f03a74e4549a0aee7d98fc859e, type: 3}
+--- !u!1 &1306647295
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1306647297}
+  - component: {fileID: 1306647296}
+  m_Layer: 0
+  m_Name: PlayerInventory
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1306647296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1306647295}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04c9a21c20fac6949b355fcc63ed27d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Inventory.PlayerInventory
+  _database: {fileID: 11400000, guid: 1121d448c0c039448999fa9f45273fdf, type: 2}
+  _characterDatabase: {fileID: 11400000, guid: 476e056dc18d5854d86fceb558585fe6, type: 2}
+--- !u!4 &1306647297
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1306647295}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -3.50638, y: 6.36865, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1338512629
 GameObject:
   m_ObjectHideFlags: 0
@@ -1307,6 +1386,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1007362371}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1403180301
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1403180302}
+  m_Layer: 0
+  m_Name: B Box Spawn Pos
+  m_TagString: Untagged
+  m_Icon: {fileID: 2974397684917235467, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1403180302
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1403180301}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.25, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1416161311}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1410707948
 GameObject:
   m_ObjectHideFlags: 0
@@ -1371,16 +1481,19 @@ MonoBehaviour:
   _cameraScroll: {fileID: 1410707950}
   _startGrid: {fileID: 1358902749}
   _gridHeight: 10
+  _treasureBoxPrefab: {fileID: -7741171886283375806, guid: 9558823e4edb4c146a5e9cbabf46bf07, type: 3}
   _setA:
     playerStartSpawnPos: {fileID: 2134716023}
     playerStartMovePos: {fileID: 1340229467}
     enemySpawnPos: {fileID: 663231190}
     playerEndMovePos: {fileID: 1391641283}
+    boxSpawnPos: {fileID: 350054484}
   _setB:
     playerStartSpawnPos: {fileID: 515828261}
     playerStartMovePos: {fileID: 814549}
     enemySpawnPos: {fileID: 1124725861}
     playerEndMovePos: {fileID: 1338512630}
+    boxSpawnPos: {fileID: 1403180302}
 --- !u!4 &1410707952
 Transform:
   m_ObjectHideFlags: 0
@@ -1427,6 +1540,7 @@ Transform:
   m_Children:
   - {fileID: 515828261}
   - {fileID: 814549}
+  - {fileID: 1403180302}
   - {fileID: 1124725861}
   - {fileID: 1338512630}
   m_Father: {fileID: 0}
@@ -2321,6 +2435,7 @@ SceneRoots:
   - {fileID: 535386334}
   - {fileID: 1410707952}
   - {fileID: 279517367}
+  - {fileID: 1306647297}
   - {fileID: 2017183397}
   - {fileID: 352736693}
   - {fileID: 1777480109}

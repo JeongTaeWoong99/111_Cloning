@@ -9,6 +9,7 @@ public enum GameState
 {
     Entering,      // 플레이어 등장 이동 중
     Combat,        // 적 이동 + 플레이어 입력 활성
+    Reward,        // 보상 방 진행 중 (전투 없음, 플레이어 Idle)
     Cleared,       // 적 전멸, 플레이어 퇴장 이동
     Transitioning, // 층 전환 중 (카메라 스크롤)
     Pinned,        // 플레이어가 왼쪽 경계에 밀림

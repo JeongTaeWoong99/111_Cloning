@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7eedda91e85af64418a39db203fa3d31, type: 3}
-  m_Name: Floor Spawn Config 4
+  m_Name: 1 Floor Spawn Config
   m_EditorClassIdentifier: Assembly-CSharp::FloorSpawnConfig
-  totalEnemyCount: 20
+  totalEnemyCount: 5
   entries:
   - data: {fileID: 11400000, guid: 41bb398aa1976084584c9542ccb9ae01, type: 2}
-    percent: 54.4
+    percent: 100
   - data: {fileID: 11400000, guid: 636f88133e5325049979e85b7e14bcbc, type: 2}
-    percent: 45
+    percent: 0

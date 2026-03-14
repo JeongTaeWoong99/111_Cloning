@@ -15,6 +15,8 @@ public class FloorPositionSet
     public Transform playerStartMovePos;
     public Transform enemySpawnPos;
     public Transform playerEndMovePos;
+    [Tooltip("보상 방 전용: 박스 스폰 위치")]
+    public Transform boxSpawnPos;
 }
 
 /// <summary>
@@ -33,13 +35,17 @@ public class FloorManager : MonoBehaviour
     // _floorConfigs.Count에서 자동으로 설정됨 (Inspector 미노출)
     private int _totalFloors;
 
+    [Header("보상 방")]
+    [SerializeField] private TreasureBox _treasureBoxPrefab;
+
     [Header("플레이어 위치 세트")]
     [SerializeField] private FloorPositionSet _setA;
     [SerializeField] private FloorPositionSet _setB;
 
     // ── Fields ────────────────────────────────────────────────────
     // 층 번호 → 그리드 인스턴스 매핑
-    private readonly Dictionary<int, FloorGrid> _floorGridMap = new();
+    private readonly Dictionary<int, FloorGrid>       _floorGridMap = new();
+    private readonly Dictionary<int, TreasureBox>     _boxMap       = new();
 
     private int  _currentFloor = 1;
     private bool _useSetA      = true;
@@ -69,12 +75,18 @@ public class FloorManager : MonoBehaviour
             _floorGridMap[floor] = grid;
         }
 
-        // 1층·2층 적 사전 배치 (게임 시작 시 setA=1층, setB=2층 위치에 있음)
-        EnemySpawnManager.Instance.PreloadFloor(1, _setA.enemySpawnPos.position);
+        // 1층·2층 적/박스 사전 배치 (게임 시작 시 setA=1층, setB=2층 위치에 있음)
+        if (!EnemySpawnManager.Instance.IsRewardFloor(1))
+            EnemySpawnManager.Instance.PreloadFloor(1, _setA.enemySpawnPos.position);
+        else
+            PreloadBox(1, _setA.boxSpawnPos.position);
 
         if (2 <= _totalFloors)
         {
-            EnemySpawnManager.Instance.PreloadFloor(2, _setB.enemySpawnPos.position);
+            if (!EnemySpawnManager.Instance.IsRewardFloor(2))
+                EnemySpawnManager.Instance.PreloadFloor(2, _setB.enemySpawnPos.position);
+            else
+                PreloadBox(2, _setB.boxSpawnPos.position);
         }
 
         StartCoroutine(RunFloor());
@@ -92,21 +104,29 @@ public class FloorManager : MonoBehaviour
         // 1. 등장 (Entering)
         GameManager.Instance.SetState(GameState.Entering);
         PlayerMover.Instance.TeleportTo(activeSet.playerStartSpawnPos.position);
-        EnemySpawnManager.Instance.ActivateFloor(_currentFloor);
-        yield return StartCoroutine(PlayerMover.Instance.MoveTo(activeSet.playerStartMovePos.position));
 
-        // 2. 전투 (Combat) — 적 전멸까지 대기
-        GameManager.Instance.SetState(GameState.Combat);
+        if (EnemySpawnManager.Instance.IsRewardFloor(_currentFloor))
+        {
+            yield return StartCoroutine(RunRewardRoom(activeSet));
+        }
+        else
+        {
+            EnemySpawnManager.Instance.ActivateFloor(_currentFloor);
+            yield return StartCoroutine(PlayerMover.Instance.MoveTo(activeSet.playerStartMovePos.position));
 
-        bool isCleared = false;
-        EnemySpawnManager.Instance.OnAllDefeated += HandleAllDefeated;
-        EnemySpawnManager.Instance.StartMoving();
+            // 2. 전투 (Combat) — 적 전멸까지 대기
+            GameManager.Instance.SetState(GameState.Combat);
 
-        yield return new WaitUntil(() => isCleared);
+            bool isCleared = false;
+            EnemySpawnManager.Instance.OnAllDefeated += HandleAllDefeated;
+            EnemySpawnManager.Instance.StartMoving();
 
-        EnemySpawnManager.Instance.OnAllDefeated -= HandleAllDefeated;
+            yield return new WaitUntil(() => isCleared);
 
-        void HandleAllDefeated() => isCleared = true;
+            EnemySpawnManager.Instance.OnAllDefeated -= HandleAllDefeated;
+
+            void HandleAllDefeated() => isCleared = true;
+        }
 
         // 3. 퇴장 (Cleared)
         GameManager.Instance.SetState(GameState.Cleared);
@@ -132,7 +152,7 @@ public class FloorManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 세트의 4개 Transform을 y축으로 deltaY만큼 이동한다.
+    /// 세트의 Transform을 y축으로 deltaY만큼 이동한다.
     /// </summary>
     private void MoveSetUp(FloorPositionSet set, float deltaY)
     {
@@ -140,6 +160,9 @@ public class FloorManager : MonoBehaviour
         MoveTransformUp(set.playerStartMovePos,  deltaY);
         MoveTransformUp(set.enemySpawnPos,       deltaY);
         MoveTransformUp(set.playerEndMovePos,    deltaY);
+
+        if (set.boxSpawnPos != null)
+            MoveTransformUp(set.boxSpawnPos, deltaY);
     }
 
     private void MoveTransformUp(Transform target, float deltaY)
@@ -176,6 +199,13 @@ public class FloorManager : MonoBehaviour
 
         EnemySpawnManager.Instance.UnloadFloor(removeFloor);
 
+        // 현재층-2 박스 정리 (보상 방이었던 경우)
+        if (_boxMap.TryGetValue(removeFloor, out TreasureBox removeBox))
+        {
+            Destroy(removeBox.gameObject);
+            _boxMap.Remove(removeFloor);
+        }
+
         // 현재층+2에 새 그리드 배치
         int addFloor = _currentFloor + 2;
 
@@ -187,12 +217,48 @@ public class FloorManager : MonoBehaviour
             _floorGridMap[addFloor] = newGrid;
         }
 
-        // 현재층+1 적 사전 배치 (MoveSetUp으로 activeSet이 해당 위치에 있음)
+        // 현재층+1 적/박스 사전 배치 (MoveSetUp으로 activeSet이 해당 위치에 있음)
         int nextFloor = _currentFloor + 1;
 
-        if (nextFloor <= _totalFloors && !EnemySpawnManager.Instance.HasPendingFloor(nextFloor))
+        if (nextFloor <= _totalFloors)
         {
-            EnemySpawnManager.Instance.PreloadFloor(nextFloor, activeSet.enemySpawnPos.position);
+            if (!EnemySpawnManager.Instance.IsRewardFloor(nextFloor))
+            {
+                if (!EnemySpawnManager.Instance.HasPendingFloor(nextFloor))
+                    EnemySpawnManager.Instance.PreloadFloor(nextFloor, activeSet.enemySpawnPos.position);
+            }
+            else if (!_boxMap.ContainsKey(nextFloor))
+            {
+                PreloadBox(nextFloor, activeSet.boxSpawnPos.position);
+            }
         }
+    }
+
+    /// <summary>
+    /// 보상 방 진행 시퀀스: 입장 이동 → Reward 상태 → 박스 오픈 → 완료 대기.
+    /// </summary>
+    private IEnumerator RunRewardRoom(FloorPositionSet activeSet)
+    {
+        yield return StartCoroutine(PlayerMover.Instance.MoveTo(activeSet.playerStartMovePos.position));
+
+        // 보상 방 상태 전환 → PlayerAnimator가 Idle 재생
+        GameManager.Instance.SetState(GameState.Reward);
+
+        Inventory.ItemData reward = EnemySpawnManager.Instance.GetRewardItem(_currentFloor);
+        TreasureBox        box    = _boxMap[_currentFloor];
+
+        bool rewardCollected = false;
+        box.Open(reward, () => rewardCollected = true);
+
+        yield return new WaitUntil(() => rewardCollected);
+    }
+
+    /// <summary>
+    /// 보상 방 박스를 스폰하고 층 번호와 매핑한다.
+    /// </summary>
+    private void PreloadBox(int floor, Vector2 spawnPos)
+    {
+        TreasureBox box = Instantiate(_treasureBoxPrefab, spawnPos, Quaternion.identity);
+        _boxMap[floor] = box;
     }
 }

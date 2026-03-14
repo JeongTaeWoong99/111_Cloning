@@ -128,7 +128,8 @@ public class PlayerAnimator : MonoBehaviour
                 PlayRun();   // 등장/퇴장 이동 중 Run
                 break;
             case GameState.Combat:
-                PlayIdle();  // 전투 진입 시 초기 Idle
+            case GameState.Reward:
+                PlayIdle();  // 전투 진입 / 보상 방 대기 시 Idle
                 break;
             // Pinned / Transitioning / GameOver: 다른 시스템이 처리
         }

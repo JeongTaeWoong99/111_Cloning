@@ -96,6 +96,7 @@ namespace Inventory
 
             _items.Add(item);
             OnChanged?.Invoke();
+            Save();   // 아이템 획득 즉시 영구 저장
             return true;
         }
 
@@ -224,6 +225,10 @@ namespace Inventory
                 if (item != null)
                 {
                     _items.Add(item);
+                }
+                else if (!string.IsNullOrEmpty(itemName))
+                {
+                    Debug.LogWarning($"[PlayerInventory] Load: '{itemName}' 아이템을 ItemDatabase에서 찾을 수 없음 — ItemDatabase.allItems에 해당 SO 추가 필요");
                 }
             }
 

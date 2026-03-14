@@ -22,6 +22,7 @@ public class PlayerStats : MonoBehaviour
     public int   TotalAttack      { get; private set; }
     public int   TotalHealth      { get; private set; }
     public float TotalAttackSpeed { get; private set; }
+    public float AttackInterval   { get; private set; }
 
     // ──────────────────────────────────────────
     // MonoBehaviour
@@ -82,5 +83,13 @@ public class PlayerStats : MonoBehaviour
         TotalAttack      = attack;
         TotalHealth      = health;
         TotalAttackSpeed = attackSpeed;
+
+        // 공격 인터벌: 클립 길이 ÷ 공속 배율 (클립 길이는 overrideController에서 자동 추출)
+        float clipLength = ch?.GetAttackClipLength() ?? 0.5f;
+        AttackInterval   = clipLength / TotalAttackSpeed;
+
+        Debug.Log($"[Stats] 씬={UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}"
+                + $" | ATK={TotalAttack} HP={TotalHealth}"
+                + $" | 공속배율={TotalAttackSpeed:F3} | 공격인터벌={AttackInterval:F4}s");
     }
 }

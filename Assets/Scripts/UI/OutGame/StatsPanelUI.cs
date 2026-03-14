@@ -15,6 +15,7 @@ namespace UI
         // ──────────────────────────────────────────
         [SerializeField] private TMP_Text _atkText;
         [SerializeField] private TMP_Text _hpText;
+        [SerializeField] private TMP_Text _speedText;
 
         // ──────────────────────────────────────────
         // MonoBehaviour
@@ -47,8 +48,12 @@ namespace UI
                 return;
             }
 
-            _atkText.text = $"ATK: {PlayerStats.Instance.TotalAttack}";
-            _hpText.text  = $"HP: {PlayerStats.Instance.TotalHealth}";
+            _atkText.text   = $"ATK: {PlayerStats.Instance.TotalAttack}";
+            _hpText.text    = $"HP: {PlayerStats.Instance.TotalHealth}";
+            _speedText.text = $"SPD: {PlayerStats.Instance.AttackInterval:F4}";
+
+            Debug.Log($"[StatsPanelUI] 갱신 → SPD: {PlayerStats.Instance.AttackInterval:F4}s"
+                    + $" (공속배율: {PlayerStats.Instance.TotalAttackSpeed:F3})");
         }
     }
 }

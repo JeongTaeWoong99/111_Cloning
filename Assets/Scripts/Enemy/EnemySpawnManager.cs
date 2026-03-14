@@ -137,6 +137,26 @@ public class EnemySpawnManager : MonoBehaviour
     public bool HasPendingFloor(int floor) => _pendingEnemies.ContainsKey(floor);
 
     /// <summary>
+    /// 해당 층이 보상 방인지 반환한다.
+    /// </summary>
+    public bool IsRewardFloor(int floor) => GetConfigForFloor(floor).isRewardRoom;
+
+    /// <summary>
+    /// 해당 층의 possibleRewards에서 랜덤으로 1개 반환한다.
+    /// </summary>
+    public Inventory.ItemData GetRewardItem(int floor)
+    {
+        List<Inventory.ItemData> pool = GetConfigForFloor(floor).possibleRewards;
+
+        if (pool == null || pool.Count == 0)
+        {
+            return null;
+        }
+        
+        return pool[UnityEngine.Random.Range(0, pool.Count)];
+    }
+
+    /// <summary>
     /// 적 일괄 이동을 시작하고 Run 애니메이션을 재생한다.
     /// </summary>
     public void StartMoving()

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Inventory;
 using UnityEngine;
 
 /// <summary>
@@ -24,4 +25,11 @@ public class FloorSpawnConfig : ScriptableObject
 
     [Tooltip("적 종류별 스폰 비율 (합계가 100에 가까울수록 정확)")]
     public List<EnemyWeightEntry> entries;
+
+    [Header("보상 방 설정")]
+    [Tooltip("true 시 전투 없이 보상 방 시퀀스 실행")]
+    public bool isRewardRoom;
+
+    [Tooltip("보상 방에서 랜덤으로 1개 획득할 아이템 목록")]
+    public List<ItemData> possibleRewards;
 }

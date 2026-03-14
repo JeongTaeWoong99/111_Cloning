@@ -17,4 +17,5 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: e59cf04fb0636794cb011216c538c8ed, type: 3}
   attackBonus: 3
   healthBonus: 3
+  attackSpeedBonus: 60
   weaponType: 2

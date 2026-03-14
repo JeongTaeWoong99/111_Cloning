@@ -15,7 +15,9 @@ namespace Inventory
         private void OnEnable()
         {
             // OnEnable은 에셋 로드·어셈블리 리로드 시 재호출되므로 항상 재빌드
-            _nameCache = new Dictionary<string, ItemData>(allItems.Count);
+            _nameCache = new Dictionary<string, ItemData>(allItems?.Count ?? 0);
+            if (allItems == null) return;
+
             foreach (ItemData item in allItems)
             {
                 if (item != null)

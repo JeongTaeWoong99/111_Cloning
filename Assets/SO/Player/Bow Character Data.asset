@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: "\uAD81\uBCD1"
   weaponType: 2
-  baseAttack: 10
+  baseAttack: 6
   baseHealth: 5
   baseAttackSpeed: 1
   overrideController: {fileID: 22100000, guid: 1db0f390b32736e4bbca587f9346c8dd, type: 2}
