@@ -8,8 +8,10 @@ using UnityEngine;
 public class Arrow : MonoBehaviour
 {
     // ── Serialized Fields ─────────────────────────────────────────
-    [SerializeField, Range(5f, 30f)] private float _speed    = 15f;
-    [SerializeField, Range(1f, 10f)] private float _lifetime = 3f;
+    [SerializeField] private string _poolId = "Arrow";
+    [SerializeField, Range(5f, 30f)] private float _speed       = 15f;
+    [SerializeField, Range(1f, 10f)] private float _lifetime    = 3f;
+    [SerializeField]                 private float _boundaryX   = 6f;
 
     // ── Fields ────────────────────────────────────────────────────
     private float     _damage;
@@ -32,7 +34,13 @@ public class Arrow : MonoBehaviour
 
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Update()
-        => transform.Translate(Vector2.right * (_speed * Time.deltaTime));
+    {
+        transform.Translate(Vector2.right * (_speed * Time.deltaTime));
+
+        // 경계 초과 시 즉시 반환
+        if (transform.position.x > _boundaryX)
+            ReturnToPool();
+    }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -74,6 +82,6 @@ public class Arrow : MonoBehaviour
             _lifetimeRoutine = null;
         }
 
-        ObjectPoolManager.Instance.Release("Arrow", gameObject);
+        ObjectPoolManager.Instance.Release(_poolId, gameObject);
     }
 }

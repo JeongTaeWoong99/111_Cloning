@@ -12,8 +12,10 @@ public enum GameState
     Reward,        // 보상 방 진행 중 (전투 없음, 플레이어 Idle)
     Cleared,       // 적 전멸, 플레이어 퇴장 이동
     Transitioning, // 층 전환 중 (카메라 스크롤)
-    Pinned,        // 플레이어가 왼쪽 경계에 밀림
-    GameOver,      // 게임 오버
+    Skill,         // 스킬 연출 중 — timeScale=0으로 전체 freeze
+    Dash,          // 대쉬 중 — 다른 입력 차단
+    Pinned,        // 플레이어가 왼쪽 경계에 밀림 — timeScale=0
+    GameOver,      // 게임 오버 — timeScale=0
 }
 
 /// <summary>
@@ -43,11 +45,16 @@ public class GameManager : MonoBehaviour
     public void SetState(GameState state)
     {
         CurrentState = state;
-        OnStateChanged?.Invoke(state);
 
-        if (state == GameState.GameOver)
+        // timeScale 중앙 관리 — Pinned/Skill/GameOver는 0, 나머지는 1
+        Time.timeScale = state switch
         {
-            Time.timeScale = 0f;
-        }
+            GameState.Pinned   => 0f,
+            GameState.Skill    => 0f,
+            GameState.GameOver => 0f,
+            _                  => 1f,
+        };
+
+        OnStateChanged?.Invoke(state);
     }
 }

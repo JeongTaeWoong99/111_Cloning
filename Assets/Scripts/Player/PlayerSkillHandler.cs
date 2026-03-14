@@ -90,13 +90,11 @@ public class PlayerSkillHandler : MonoBehaviour
     /// </summary>
     private IEnumerator ExecuteSlash()
     {
-        // 연출 딜레이 동안 물리·애니메이션 정지
-        Physics2D.simulationMode = SimulationMode2D.Script;
-        EnemySpawnManager.Instance.StopMoving();
-        yield return new WaitForSeconds(_skillDelay);
-        // 판정 실행 전 물리·애니메이션 복원
-        Physics2D.simulationMode = SimulationMode2D.FixedUpdate;
-        EnemySpawnManager.Instance.StartMoving();
+        // Skill 상태(timeScale=0)로 전체 freeze
+        GameManager.Instance.SetState(GameState.Skill);
+        yield return new WaitForSecondsRealtime(_skillDelay);
+        // 판정 실행 전 Combat 복귀(timeScale=1)
+        GameManager.Instance.SetState(GameState.Combat);
 
         float   damage    = PlayerStats.Instance.TotalAttack * 2f;
         Vector2 boxCenter = (Vector2)transform.position + Vector2.right * (_slashRange * 0.5f);
@@ -116,13 +114,11 @@ public class PlayerSkillHandler : MonoBehaviour
     /// </summary>
     private IEnumerator ExecuteArrowRain()
     {
-        // 연출 딜레이 동안 물리·애니메이션 정지
-        Physics2D.simulationMode = SimulationMode2D.Script;
-        EnemySpawnManager.Instance.StopMoving();
-        yield return new WaitForSeconds(_skillDelay);
-        // 판정 실행 전 물리·애니메이션 복원
-        Physics2D.simulationMode = SimulationMode2D.FixedUpdate;
-        EnemySpawnManager.Instance.StartMoving();
+        // Skill 상태(timeScale=0)로 전체 freeze
+        GameManager.Instance.SetState(GameState.Skill);
+        yield return new WaitForSecondsRealtime(_skillDelay);
+        // 판정 실행 전 Combat 복귀(timeScale=1)
+        GameManager.Instance.SetState(GameState.Combat);
 
         float damage  = PlayerStats.Instance.TotalAttack;
         float xStart  = transform.position.x - _arrowRainXLeft;

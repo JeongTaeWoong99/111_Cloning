@@ -51,6 +51,8 @@ public class PlayerCombat : MonoBehaviour
             state == GameState.Cleared          ||
             state == GameState.Transitioning    ||
             state == GameState.Entering         ||
+            state == GameState.Skill            ||
+            state == GameState.Dash             ||
             state == GameState.GameOver)
         {
             if (_isAttacking) StopAttack();
@@ -166,6 +168,7 @@ public class PlayerCombat : MonoBehaviour
     private IEnumerator DashSequence(Vector2 target)
     {
         _isDashing = true;
+        GameManager.Instance.SetState(GameState.Dash);   // 대쉬 중 다른 입력 차단
         float clip = _playerAnimator.GetClipLength("Dash");
         _playerAnimator.PlayDash();
 
@@ -175,11 +178,11 @@ public class PlayerCombat : MonoBehaviour
         // 애니메이션 클립 길이만큼만 대기
         yield return new WaitForSeconds(clip);
 
-        // 대쉬 종료 — 이후 상태가 Combat이면 입력에 따라 공격 또는 Idle 복귀
         _isDashing = false;
 
-        // Combat 상태일 때만 전이 (Pinned 등 다른 상태면 무시)
-        if (GameManager.Instance.CurrentState != GameState.Combat) yield break;
+        // Dash 상태일 때만 Combat 복귀 (Pinned 등 외부에서 상태 바뀌면 무시)
+        if (GameManager.Instance.CurrentState != GameState.Dash) yield break;
+        GameManager.Instance.SetState(GameState.Combat);
 
         if (Input.GetKey(KeyCode.A))
             StartAttack();

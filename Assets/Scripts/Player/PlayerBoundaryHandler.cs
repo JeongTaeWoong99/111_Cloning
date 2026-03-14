@@ -78,8 +78,7 @@ public class PlayerBoundaryHandler : MonoBehaviour
     {
         _isPinned    = false;
         _isLaunching = true;
-        // AddForce·KnockbackEnemies가 물리 복원 이후에 실행되어야 하므로 먼저 복원
-        Physics2D.simulationMode = SimulationMode2D.FixedUpdate;
+        // SetState(Combat)이 timeScale=1을 복원 → 물리 자동 재개
         GameManager.Instance.SetState(GameState.Combat);
 
         // 45도 방향 = (right + up).normalized
@@ -136,11 +135,9 @@ public class PlayerBoundaryHandler : MonoBehaviour
         }
 
         _isPinned = true;
+        // SetState(Pinned)가 timeScale=0 설정 → 물리·애니메이션 자동 freeze
         GameManager.Instance.SetState(GameState.Pinned);
         PlayerHealth.Instance.TakeDamage(1);
         PlayerMover.Instance.StopImmediate();
-        EnemySpawnManager.Instance.StopMoving();
-        // Pinned 동안 물리 시뮬레이션 완전 정지
-        Physics2D.simulationMode = SimulationMode2D.Script;
     }
 }

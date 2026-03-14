@@ -31,8 +31,9 @@ public class FloorManager : MonoBehaviour
     [SerializeField] private GridPool               _gridPool;
     [SerializeField] private CameraScrollController _cameraScroll;
     [SerializeField] private FloorGrid              _startGrid;
-    [SerializeField] private float _gridHeight = 10f;
-
+    [SerializeField] private float                  _gridHeight = 10f;
+    [SerializeField] private BoxCollider2D          _rightWall;
+    
     // _floorConfigs.Count에서 자동으로 설정됨 (Inspector 미노출)
     private int _totalFloors;
 
@@ -49,8 +50,8 @@ public class FloorManager : MonoBehaviour
 
     // ── Fields ────────────────────────────────────────────────────
     // 층 번호 → 그리드 인스턴스 매핑
-    private readonly Dictionary<int, FloorGrid>       _floorGridMap = new();
-    private readonly Dictionary<int, TreasureBox>     _boxMap       = new();
+    private readonly Dictionary<int, FloorGrid>   _floorGridMap = new();
+    private readonly Dictionary<int, TreasureBox> _boxMap       = new();
 
     private int  _currentFloor = 1;
     private bool _useSetA      = true;
@@ -137,6 +138,8 @@ public class FloorManager : MonoBehaviour
 
         // 3. 퇴장 (Cleared)
         GameManager.Instance.SetState(GameState.Cleared);
+        _rightWall.enabled = false; // 벽 콜리더 끄기
+        
         yield return StartCoroutine(PlayerMover.Instance.MoveTo(activeSet.playerEndMovePos.position));
 
         // 4. 마지막 층 도달 → 시퀀스 종료
@@ -146,6 +149,8 @@ public class FloorManager : MonoBehaviour
         }
 
         // 5. 층 전환 (Transitioning)
+        _rightWall.enabled = true; // 벽 콜리더 켜기
+        
         GameManager.Instance.SetState(GameState.Transitioning);
         PlayerMover.Instance.TeleportTo(standbySet.playerStartSpawnPos.position);
         MoveSetUp(activeSet, _gridHeight * 2f);

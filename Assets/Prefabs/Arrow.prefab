@@ -179,5 +179,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0220498598ad03b4482d509e024f2120, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Arrow
+  _poolId: Arrow
   _speed: 30
   _lifetime: 3
+  _boundaryX: 6.5
