@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9588cf00403145c4384db58f720e7d58, type: 3}
   m_Name: Spear Character Data
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterName: "\uCC3D\uBCD1"
+  characterName: Spearmen
   weaponType: 3
   baseAttack: 9
-  baseHealth: 5
+  baseHealth: 4
   baseAttackSpeed: 1
+  skillName: Clone
+  skillDescription: Gain a clone equal to 50% of attack power for 10 seconds
+  skillSprite: {fileID: 21300000, guid: 835919401f538eb42b06914372123e8e, type: 3}
   overrideController: {fileID: 22100000, guid: c56637754146f0f468125220542ff1e2, type: 2}

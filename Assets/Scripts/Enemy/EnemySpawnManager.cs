@@ -165,6 +165,7 @@ public class EnemySpawnManager : MonoBehaviour
 
         foreach (Enemy enemy in _livingEnemies)
         {
+            if (enemy.IsDying) continue;
             enemy.PlayRun();
         }
     }
@@ -178,6 +179,7 @@ public class EnemySpawnManager : MonoBehaviour
 
         foreach (Enemy enemy in _livingEnemies)
         {
+            if (enemy.IsDying) continue;
             enemy.Rigidbody.linearVelocity = Vector2.zero;
             enemy.PlayIdle();
         }

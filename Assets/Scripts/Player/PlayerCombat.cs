@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Inventory;
 using UnityEngine;
 
 /// <summary>
@@ -73,6 +74,7 @@ public class PlayerCombat : MonoBehaviour
         HandleAttack();
         HandleDash();
         HandleCounterattackSkill();
+        HandleSkill();
     }
 
     // ── Private Methods ───────────────────────────────────────────
@@ -205,6 +207,19 @@ public class PlayerCombat : MonoBehaviour
         _parryTimer = 0f;
         StopAttack();
         PlayerBoundaryHandler.Instance.CounterattackSkill();
+    }
+
+    /// <summary>
+    /// F키 스킬 입력 처리 — 스킬 내부 로직은 추후 구현. 현재는 Debug.Log만 출력.
+    /// </summary>
+    private void HandleSkill()
+    {
+        if (!Input.GetKeyDown(KeyCode.F)) return;
+
+        CharacterData data = PlayerInventory.Instance.SelectedCharacter;
+        if (data == null) return;
+
+        Debug.Log($"[스킬] {data.characterName} — {data.skillName} 사용");
     }
 
     private Enemy FindNearestEnemy()

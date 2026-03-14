@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9588cf00403145c4384db58f720e7d58, type: 3}
   m_Name: Bow Character Data
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterName: "\uAD81\uBCD1"
+  characterName: Archers
   weaponType: 2
   baseAttack: 6
-  baseHealth: 5
+  baseHealth: 3
   baseAttackSpeed: 1
+  skillName: Arrow rain
+  skillDescription: I rain down 20 arrows
+  skillSprite: {fileID: 21300000, guid: 83da52182bc637e498b2e0da38d233a7, type: 3}
   overrideController: {fileID: 22100000, guid: 1db0f390b32736e4bbca587f9346c8dd, type: 2}

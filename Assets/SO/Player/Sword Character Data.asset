@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9588cf00403145c4384db58f720e7d58, type: 3}
   m_Name: Sword Character Data
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterName: "\uAC80\uC0AC"
+  characterName: Swordsmen
   weaponType: 1
   baseAttack: 12
   baseHealth: 5
   baseAttackSpeed: 1
+  skillName: Slash
+  skillDescription: 200% of attack power slash
+  skillSprite: {fileID: 21300000, guid: edb6c6f1eb55f4e43a992713db705866, type: 3}
   overrideController: {fileID: 22100000, guid: 1c42a101d0dd5f44281cd13f457bee74, type: 2}

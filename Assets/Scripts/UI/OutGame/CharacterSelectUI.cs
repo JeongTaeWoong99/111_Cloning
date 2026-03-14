@@ -7,7 +7,8 @@ namespace UI
 {
     /// <summary>
     /// OutGame 씬 전용 캐릭터 선택 UI.
-    /// 좌/우 버튼으로 캐릭터를 순환하며 미리보기 애니메이션을 갱신합니다.
+    /// 좌/우 버튼으로 캐릭터를 순환하고 미리보기 애니메이션을 갱신합니다.
+    /// UI 텍스트 갱신은 StatsPanelUI / SkillPanelUI가 OnCharacterChanged 이벤트로 처리합니다.
     /// </summary>
     public class CharacterSelectUI : MonoBehaviour
     {
@@ -64,19 +65,16 @@ namespace UI
 
         private void ApplyCharacter()
         {
-            if (_characters.Length == 0)
-            {
-                return;
-            }
+            if (_characters.Length == 0) return;
 
             CharacterData data = _characters[_currentIndex];
 
             // 미리보기 애니메이터에 캐릭터 고유 컨트롤러 적용 → Idle 자동 재생
             if (_previewAnimator != null)
-            {
                 _previewAnimator.runtimeAnimatorController = data.overrideController;
-            }
 
+            // SelectCharacter 호출 → OnCharacterChanged 이벤트 발행
+            // → StatsPanelUI / SkillPanelUI가 각자 Refresh
             PlayerInventory.Instance.SelectCharacter(data);
         }
     }

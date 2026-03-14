@@ -1,41 +1,35 @@
 using Inventory;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace UI
 {
     /// <summary>
-    /// 왼쪽 State 패널 UI.
-    /// 캐릭터 변경 또는 장비 변경 시 Name / ATK / HP / Speed를 실시간 갱신합니다.
+    /// 오른쪽 Skill 패널 UI.
+    /// 캐릭터 변경 시 스킬 이름 / 아이콘 / 설명을 실시간 갱신합니다.
     /// </summary>
-    public class StatsPanelUI : MonoBehaviour
+    public class SkillPanelUI : MonoBehaviour
     {
         // ──────────────────────────────────────────
         // [SerializeField] Private Fields
         // ──────────────────────────────────────────
-        [SerializeField] private TMP_Text _nameText;
-        [SerializeField] private TMP_Text _atkText;
-        [SerializeField] private TMP_Text _hpText;
-        [SerializeField] private TMP_Text _speedText;
+        [SerializeField] private TMP_Text _skillNameText;
+        [SerializeField] private Image    _skillImage;
+        [SerializeField] private TMP_Text _skillDescText;
 
         // ──────────────────────────────────────────
         // MonoBehaviour
         // ──────────────────────────────────────────
         private void Start()
         {
-            PlayerInventory.Instance.OnChanged          += Refresh;
             PlayerInventory.Instance.OnCharacterChanged += Refresh;
             Refresh();
         }
 
         private void OnDestroy()
         {
-            if (PlayerInventory.Instance == null)
-            {
-                return;
-            }
-
-            PlayerInventory.Instance.OnChanged          -= Refresh;
+            if (PlayerInventory.Instance == null) return;
             PlayerInventory.Instance.OnCharacterChanged -= Refresh;
         }
 
@@ -44,18 +38,11 @@ namespace UI
         // ──────────────────────────────────────────
         private void Refresh()
         {
-            if (PlayerStats.Instance == null) return;
+            CharacterData data = PlayerInventory.Instance?.SelectedCharacter;
 
-            CharacterData ch = PlayerInventory.Instance?.SelectedCharacter;
-            if (_nameText != null)
-                _nameText.text = ch != null ? ch.characterName : "";
-
-            _atkText.text   = $"ATK: {PlayerStats.Instance.TotalAttack}";
-            _hpText.text    = $"HP: {PlayerStats.Instance.TotalHealth}";
-            _speedText.text = $"SPD: {PlayerStats.Instance.AttackInterval:F4}";
-
-            // Debug.Log($"[StatsPanelUI] 갱신 → SPD: {PlayerStats.Instance.AttackInterval:F4}s"
-            //         + $" (공속배율: {PlayerStats.Instance.TotalAttackSpeed:F3})");
+            if (_skillNameText != null) _skillNameText.text = data != null ? data.skillName        : "";
+            if (_skillDescText != null) _skillDescText.text = data != null ? data.skillDescription : "";
+            if (_skillImage    != null) _skillImage.sprite  = data?.skillSprite;
         }
     }
 }
