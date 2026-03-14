@@ -90,6 +90,9 @@ public class PlayerBoundaryHandler : MonoBehaviour
         EnemySpawnManager.Instance.KnockbackEnemies(
             knockbackDir * _knockbackForce, _knockbackDuration);
 
+        // 보스 방에서도 넉백 적용
+        BossManager.Instance?.KnockbackBoss(knockbackDir * _knockbackForce, _knockbackDuration);
+
         StartCoroutine(ClearLaunchFlag());
     }
 
@@ -104,6 +107,9 @@ public class PlayerBoundaryHandler : MonoBehaviour
         Vector2 dir = (Vector2.right + Vector2.up).normalized;
         PlayerMover.Instance.Launch(dir * _playerLaunchForce, _playerLaunchDuration);
         EnemySpawnManager.Instance.KnockbackEnemies(dir * _knockbackForce, _knockbackDuration);
+
+        // 보스 방에서도 넉백 적용
+        BossManager.Instance?.KnockbackBoss(dir * _knockbackForce, _knockbackDuration);
 
         StartCoroutine(ClearLaunchFlag());
     }

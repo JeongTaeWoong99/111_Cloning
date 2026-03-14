@@ -26,6 +26,7 @@ public class PlayerHealth : MonoBehaviour
 
     // ── Fields ────────────────────────────────────────────────────
     private bool           _isDead;
+    private bool           _isInvincible;
     private PlayerAnimator _playerAnimator;
 
     // ── MonoBehaviour ─────────────────────────────────────────────
@@ -55,6 +56,12 @@ public class PlayerHealth : MonoBehaviour
             return;
         }
 
+        // 무적 프레임 중 데미지 차단
+        if (_isInvincible)
+        {
+            return;
+        }
+
         CurrentHealth -= amount;
         OnHealthChanged?.Invoke(CurrentHealth);
 
@@ -66,7 +73,22 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// duration 초 동안 무적 상태로 만든다. D-대쉬 / S-패링에서 호출한다.
+    /// </summary>
+    public void SetInvincible(float duration)
+    {
+        StartCoroutine(InvincibleRoutine(duration));
+    }
+
     // ── Private Methods ───────────────────────────────────────────
+    private IEnumerator InvincibleRoutine(float duration)
+    {
+        _isInvincible = true;
+        yield return new WaitForSeconds(duration);
+        _isInvincible = false;
+    }
+
     private IEnumerator DieSequence()
     {
         _playerAnimator?.PlayDie();  // Die 애니메이션 재생

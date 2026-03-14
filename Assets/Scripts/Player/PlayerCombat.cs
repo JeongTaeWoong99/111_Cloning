@@ -27,6 +27,15 @@ public class PlayerCombat : MonoBehaviour
     [Range(0.1f, 5f)]
     private float _parryCooldown = 1f;
 
+    [SerializeField, Tooltip("보스 공격 차단 범위 (m)")]
+    private float _parryInterruptRange = 3f;
+
+    [SerializeField, Tooltip("보스 경직 시간 (초)")]
+    private float _staggerDuration = 0.8f;
+
+    [SerializeField, Tooltip("S 패링 무적 시간 (초)")]
+    private float _parryInvincibleDuration = 0.25f;
+
     // ── Fields ────────────────────────────────────────────────────
     private bool      _isAttacking;
     private bool      _isDashing;
@@ -153,6 +162,7 @@ public class PlayerCombat : MonoBehaviour
 
         // 적 왼쪽 1m 앞으로 대쉬
         Vector2 dashTarget = (Vector2)nearest.transform.position + Vector2.left * 1f;
+        dashTarget.y = transform.position.y;    // 위로 뜨지 않게 내 위치로
         StartCoroutine(DashSequence(dashTarget));
     }
 
@@ -165,6 +175,9 @@ public class PlayerCombat : MonoBehaviour
         GameManager.Instance.SetState(GameState.Dash);   // 대쉬 중 다른 입력 차단
         float clip = _playerAnimator.GetClipLength("Dash");
         _playerAnimator.PlayDash();
+
+        // 대쉬 애니메이션 동안 무적
+        PlayerHealth.Instance.SetInvincible(clip);
 
         // 물리 독립 실행 (fire-and-forget)
         StartCoroutine(PlayerMover.Instance.DashTo(target));
@@ -188,11 +201,13 @@ public class PlayerCombat : MonoBehaviour
     {
         if (!Input.GetKeyDown(KeyCode.S)) return;
 
+        // Pinned 상태에서도 보스 경직·무적 적용
+        TryInterruptBoss();
         PlayerBoundaryHandler.Instance.Counterattack();
     }
 
     /// <summary>
-    /// Combat 중 S키 — 쿨다운 기반 반격 스킬. 시간 정지 없이 Launch + 넉백.
+    /// Combat 중 S키 — 보스 경직 시도 후, 항상 플레이어 Launch + 넉백도 실행.
     /// </summary>
     private void HandleCounterattackSkill()
     {
@@ -202,7 +217,54 @@ public class PlayerCombat : MonoBehaviour
 
         _parryTimer = 0f;
         StopAttack();
+
+        TryInterruptBoss(); // 보스 경직 시도 (결과 무관하게 계속 진행)
         PlayerBoundaryHandler.Instance.CounterattackSkill();
+    }
+
+    /// <summary>
+    /// 보스가 Attack/Skill 중이고 범위 내에 있으면 경직시키고 무적을 부여한다.
+    /// </summary>
+    private bool TryInterruptBoss()
+    {
+        if (BossManager.Instance == null)
+        {
+            Debug.Log("[TryInterruptBoss] BossManager 없음");
+            return false;
+        }
+
+        if (!BossManager.Instance.IsBossInAction)
+        {
+            Debug.Log("[TryInterruptBoss] 보스가 Action 중이 아님 (Attack/Skill 아님)");
+            return false;
+        }
+
+        Boss boss = BossManager.Instance.CurrentBoss;
+        if (boss == null)
+        {
+            Debug.Log("[TryInterruptBoss] CurrentBoss null");
+            return false;
+        }
+
+        if (boss.IsDying)
+        {
+            Debug.Log("[TryInterruptBoss] 보스 사망 중 — 패링 무시");
+            return false;
+        }
+
+        float dist = Mathf.Abs(transform.position.x - boss.transform.position.x);
+        Debug.Log($"[TryInterruptBoss] 보스 거리={dist:F2}, 범위={_parryInterruptRange:F2}");
+
+        if (dist > _parryInterruptRange)
+        {
+            Debug.Log("[TryInterruptBoss] 범위 초과 → 실패");
+            return false;
+        }
+
+        Debug.Log("[TryInterruptBoss] 패링 성공 → 경직 적용");
+        BossManager.Instance.StaggerBoss(_staggerDuration);
+        PlayerHealth.Instance.SetInvincible(_parryInvincibleDuration);
+        return true;
     }
 
     private void HandleSkill()
@@ -234,20 +296,61 @@ public class PlayerCombat : MonoBehaviour
             }
         }
 
+        // 보스 방에서는 BossManager의 보스도 검사
+        Boss boss = BossManager.Instance != null ? BossManager.Instance.CurrentBoss : null;
+
+        if (boss != null && !boss.IsDying)
+        {
+            float dist = Mathf.Abs(boss.transform.position.x - transform.position.x);
+
+            if (dist < minDist)
+            {
+                nearest = boss;
+            }
+        }
+
         return nearest;
     }
 
     private void OnDrawGizmosSelected()
     {
+        // ── 공격 범위 (빨강) ──────────────────────────────────────
         Gizmos.color = new Color(1f, 0f, 0f, 0.3f);
-
-        Vector3 boxCenter = transform.position + Vector3.right * (_attackRange * 0.5f);
-        Vector3 boxSize   = new Vector3(_attackRange, 1f, 0f);
-
-        Gizmos.DrawCube(boxCenter, boxSize);
-
+        Vector3 attackCenter = transform.position + Vector3.right * (_attackRange * 0.5f);
+        Vector3 attackSize   = new Vector3(_attackRange, 1f, 0f);
+        Gizmos.DrawCube(attackCenter, attackSize);
         Gizmos.color = new Color(1f, 0f, 0f, 0.8f);
-        Gizmos.DrawWireCube(boxCenter, boxSize);
+        Gizmos.DrawWireCube(attackCenter, attackSize);
+
+        // ── S 패링 차단 범위 (파랑 그리드) ───────────────────────
+        float r  = _parryInterruptRange;
+        float h  = 2f;   // 범위 박스 높이
+        int   xDiv = 4;  // X 방향 분할 수
+        int   yDiv = 2;  // Y 방향 분할 수
+        Vector3 origin = transform.position;
+
+        // 채운 사각형
+        Gizmos.color = new Color(0.3f, 0.5f, 1f, 0.15f);
+        Gizmos.DrawCube(origin, new Vector3(r * 2f, h, 0f));
+
+        // 테두리 + 내부 그리드 선
+        Gizmos.color = new Color(0.3f, 0.5f, 1f, 0.9f);
+
+        // 세로 분할선
+        for (int i = 0; i <= xDiv; i++)
+        {
+            float x = origin.x - r + r * 2f * i / xDiv;
+            Gizmos.DrawLine(new Vector3(x, origin.y - h * 0.5f, 0f),
+                            new Vector3(x, origin.y + h * 0.5f, 0f));
+        }
+
+        // 가로 분할선
+        for (int j = 0; j <= yDiv; j++)
+        {
+            float y = origin.y - h * 0.5f + h * j / yDiv;
+            Gizmos.DrawLine(new Vector3(origin.x - r, y, 0f),
+                            new Vector3(origin.x + r, y, 0f));
+        }
     }
 
     // ── 애니메이션 이벤트 타겟 ─────────────────────────────────────
@@ -278,8 +381,6 @@ public class PlayerCombat : MonoBehaviour
     public void OnArrowSpawn()
     {
         GameObject obj = ObjectPoolManager.Instance.Get("Arrow");
-        
-        Debug.Log("OnArrowSpawn() => "+ obj.name);
         
         if (obj != null && obj.TryGetComponent(out Arrow arrow))
             arrow.Initialize(transform.position, PlayerStats.Instance?.TotalAttack ?? 1f, _enemyLayer);

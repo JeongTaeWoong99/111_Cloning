@@ -9,9 +9,9 @@ using UnityEngine;
 [Serializable]
 public class EnemyWeightEntry
 {
-    public EnemyData        data;
+    public EnemyData data;
     [Range(0, 100)]
-    public float            percent;
+    public float percent;
 }
 
 /// <summary>
@@ -32,4 +32,11 @@ public class FloorSpawnConfig : ScriptableObject
 
     [Tooltip("보상 방에서 랜덤으로 1개 획득할 아이템 목록")]
     public List<ItemData> possibleRewards;
+
+    [Header("보스 방 설정")]
+    [Tooltip("true 시 보스 방 시퀀스 실행")]
+    public bool     isBossRoom;
+
+    [Tooltip("이 층에서 소환할 보스 데이터")]
+    public BossData bossData;
 }

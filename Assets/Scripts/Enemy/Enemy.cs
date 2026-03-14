@@ -10,7 +10,7 @@ public class Enemy : MonoBehaviour
 {
     // ── Properties ───────────────────────────────────────────────
     public EnemyData   Data        { get; private set; }
-    public float       MoveSpeed   { get; private set; }
+    public float       MoveSpeed   { get; protected set; }
     public Rigidbody2D Rigidbody   { get; private set; }
     public bool        IsKnockback => _isKnockback;
     public bool        IsDying     => _isDying;
@@ -21,9 +21,10 @@ public class Enemy : MonoBehaviour
     // ── Fields ────────────────────────────────────────────────────
     private static int s_deadLayer = -1;
 
-    private Animator _animator;
-    private float    _health;
-    private int      _originalLayer;
+    private   Animator _animator;
+    protected float   _health;
+    protected float   _maxHealth;
+    private   int     _originalLayer;
     private bool     _isKnockback;
     private bool     _isDying;
 
@@ -58,9 +59,10 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public void Initialize(EnemyData data)
     {
-        Data      = data;
-        _health   = data.maxHealth;
-        MoveSpeed = data.moveSpeed;
+        Data        = data;
+        _maxHealth  = data.maxHealth;
+        _health     = _maxHealth;
+        MoveSpeed   = data.moveSpeed;
 
         if (data.overrideController != null)
         {
@@ -73,7 +75,7 @@ public class Enemy : MonoBehaviour
     /// <summary>
     /// 데미지를 적용하고 HP가 0 이하이면 사망 처리한다.
     /// </summary>
-    public void TakeDamage(float amount)
+    public virtual void TakeDamage(float amount)
     {
         if (_isDying)
         {

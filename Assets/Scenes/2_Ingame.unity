@@ -313,6 +313,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawnManager
   _enemyPrefab: {fileID: 6118449324204759450, guid: 699d47d44f92df545bd304a132a7aa4d, type: 3}
   _floorConfigs:
+  - {fileID: 11400000, guid: 679572695515e494cb6ab7ae63c44076, type: 2}
   - {fileID: 11400000, guid: 676b2a80edf3a1d4bb0c403b788738d8, type: 2}
   - {fileID: 11400000, guid: 62a7582501c23184eaf137296ccc61da, type: 2}
   - {fileID: 11400000, guid: ba646f07ba9f4144e9f441f63b55623a, type: 2}
@@ -335,6 +336,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &305246275
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 305246276}
+  - component: {fileID: 305246277}
+  m_Layer: 0
+  m_Name: BossManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &305246276
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305246275}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &305246277
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 305246275}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 247a68df82925bd41acdc26e3ae04925, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BossManager
+  _bossPrefab: {fileID: 2740873557526810004, guid: 9c3735bb4c7b3a641be40cded12b4758, type: 3}
 --- !u!1 &350054483
 GameObject:
   m_ObjectHideFlags: 0
@@ -485,6 +531,7 @@ GameObject:
   - component: {fileID: 519420029}
   - component: {fileID: 519420030}
   - component: {fileID: 519420033}
+  - component: {fileID: 519420034}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -523,7 +570,7 @@ MonoBehaviour:
     m_Bits: 1
   m_VolumeTrigger: {fileID: 0}
   m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
+  m_RenderPostProcessing: 1
   m_Antialiasing: 0
   m_AntialiasingQuality: 2
   m_StopNaN: 0
@@ -634,6 +681,23 @@ MonoBehaviour:
   m_CropFrameX: 0
   m_CropFrameY: 0
   m_StretchFill: 0
+--- !u!114 &519420034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172515602e62fb746b5d573b38a5fe58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Core.Runtime::UnityEngine.Rendering.Volume
+  m_IsGlobal: 1
+  priority: 0
+  blendDistance: 0
+  weight: 1
+  sharedProfile: {fileID: 11400000, guid: a6c2ce5e9e3d7e442bf32d33f5c9b6e3, type: 2}
 --- !u!1 &530169274
 GameObject:
   m_ObjectHideFlags: 0
@@ -2271,8 +2335,11 @@ MonoBehaviour:
   _enemyLayer:
     serializedVersion: 2
     m_Bits: 64
-  _dashCooldown: 1
-  _parryCooldown: 1
+  _dashCooldown: 0.5
+  _parryCooldown: 0.5
+  _parryInterruptRange: 3
+  _staggerDuration: 0.5
+  _parryInvincibleDuration: 0.25
 --- !u!114 &2142634748
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2382,6 +2449,7 @@ SceneRoots:
   - {fileID: 44493903}
   - {fileID: 1306647297}
   - {fileID: 352736693}
+  - {fileID: 305246276}
   - {fileID: 1777480109}
   - {fileID: 1358902748}
   - {fileID: 681224030}

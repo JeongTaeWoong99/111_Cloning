@@ -81,18 +81,18 @@ public class FloorManager : MonoBehaviour
             _floorGridMap[floor] = grid;
         }
 
-        // 1층·2층 적/박스 사전 배치 (게임 시작 시 setA=1층, setB=2층 위치에 있음)
-        if (!EnemySpawnManager.Instance.IsRewardFloor(1))
-            EnemySpawnManager.Instance.PreloadFloor(1, _setA.enemySpawnPos.position);
+        // 1층·2층 적/박스/보스 사전 배치
+        if (EnemySpawnManager.Instance.IsBossFloor(1))
+            BossManager.Instance.PreloadBoss(EnemySpawnManager.Instance.GetBossData(1), _setA.enemySpawnPos.position);
         else
-            PreloadBox(1, _setA.boxSpawnPos.position);
+            PreloadFloorOrBox(1, _setA);
 
         if (2 <= _totalFloors)
         {
-            if (!EnemySpawnManager.Instance.IsRewardFloor(2))
-                EnemySpawnManager.Instance.PreloadFloor(2, _setB.enemySpawnPos.position);
+            if (EnemySpawnManager.Instance.IsBossFloor(2))
+                BossManager.Instance.PreloadBoss(EnemySpawnManager.Instance.GetBossData(2), _setB.enemySpawnPos.position);
             else
-                PreloadBox(2, _setB.boxSpawnPos.position);
+                PreloadFloorOrBox(2, _setB);
         }
 
         StartCoroutine(RunFloor());
@@ -117,23 +117,13 @@ public class FloorManager : MonoBehaviour
         {
             yield return StartCoroutine(RunRewardRoom(activeSet));
         }
+        else if (EnemySpawnManager.Instance.IsBossFloor(_currentFloor))
+        {
+            yield return StartCoroutine(RunBossRoom(activeSet));
+        }
         else
         {
-            EnemySpawnManager.Instance.ActivateFloor(_currentFloor);
-            yield return StartCoroutine(PlayerMover.Instance.MoveTo(activeSet.playerStartMovePos.position));
-
-            // 2. 전투 (Combat) — 적 전멸까지 대기
-            GameManager.Instance.SetState(GameState.Combat);
-
-            bool isCleared = false;
-            EnemySpawnManager.Instance.OnAllDefeated += HandleAllDefeated;
-            EnemySpawnManager.Instance.StartMoving();
-
-            yield return new WaitUntil(() => isCleared);
-
-            EnemySpawnManager.Instance.OnAllDefeated -= HandleAllDefeated;
-
-            void HandleAllDefeated() => isCleared = true;
+            yield return StartCoroutine(RunCombatRoom(activeSet));
         }
 
         // 3. 퇴장 (Cleared)
@@ -218,6 +208,12 @@ public class FloorManager : MonoBehaviour
             _boxMap.Remove(removeFloor);
         }
 
+        // 현재층-2가 보스 방이었던 경우 보스 오브젝트 제거
+        if (EnemySpawnManager.Instance.IsBossFloor(removeFloor))
+        {
+            BossManager.Instance.ClearBoss();
+        }
+
         // 현재층+2에 새 그리드 배치
         int addFloor = _currentFloor + 2;
 
@@ -229,21 +225,68 @@ public class FloorManager : MonoBehaviour
             _floorGridMap[addFloor] = newGrid;
         }
 
-        // 현재층+1 적/박스 사전 배치 (MoveSetUp으로 activeSet이 해당 위치에 있음)
+        // 현재층+1 적/박스/보스 사전 배치
         int nextFloor = _currentFloor + 1;
 
         if (nextFloor <= _totalFloors)
         {
-            if (!EnemySpawnManager.Instance.IsRewardFloor(nextFloor))
+            if (EnemySpawnManager.Instance.IsBossFloor(nextFloor))
             {
-                if (!EnemySpawnManager.Instance.HasPendingFloor(nextFloor))
-                    EnemySpawnManager.Instance.PreloadFloor(nextFloor, activeSet.enemySpawnPos.position);
+                // 보스를 미리 스폰 (AI는 비활성, Idle 상태로 대기)
+                BossManager.Instance.PreloadBoss(
+                    EnemySpawnManager.Instance.GetBossData(nextFloor),
+                    activeSet.enemySpawnPos.position);
             }
-            else if (!_boxMap.ContainsKey(nextFloor))
+            else if (!EnemySpawnManager.Instance.HasPendingFloor(nextFloor) && !_boxMap.ContainsKey(nextFloor))
             {
-                PreloadBox(nextFloor, activeSet.boxSpawnPos.position);
+                PreloadFloorOrBox(nextFloor, activeSet);
             }
         }
+    }
+
+    /// <summary>
+    /// 일반 전투 방 시퀀스: 적 활성화 → 입장 이동 → 전투 → 전멸 대기.
+    /// </summary>
+    private IEnumerator RunCombatRoom(FloorPositionSet activeSet)
+    {
+        EnemySpawnManager.Instance.ActivateFloor(_currentFloor);
+        yield return StartCoroutine(PlayerMover.Instance.MoveTo(activeSet.playerStartMovePos.position));
+
+        GameManager.Instance.SetState(GameState.Combat);
+
+        bool isCleared = false;
+        EnemySpawnManager.Instance.OnAllDefeated += HandleAllDefeated;
+        EnemySpawnManager.Instance.StartMoving();
+
+        yield return new WaitUntil(() => isCleared);
+
+        EnemySpawnManager.Instance.OnAllDefeated -= HandleAllDefeated;
+
+        void HandleAllDefeated() => isCleared = true;
+    }
+
+    /// <summary>
+    /// 보스 방 시퀀스: 보스 스폰 → 입장 이동 → 연출 → 전투 → 사망 대기.
+    /// </summary>
+    private IEnumerator RunBossRoom(FloorPositionSet activeSet)
+    {
+        // 보스는 이미 PreloadBoss()에서 스폰되어 있음
+        yield return StartCoroutine(PlayerMover.Instance.MoveTo(activeSet.playerStartMovePos.position));
+
+        GameManager.Instance.SetState(GameState.Combat);
+
+        Debug.Log($"[FloorManager] 보스 방 진입 — floor {_currentFloor}");
+
+        bool isCleared = false;
+        BossManager.Instance.OnBossDefeated += HandleBossDefeated;
+
+        yield return StartCoroutine(BossManager.Instance.PlayIntroAndActivate(PlayerMover.Instance.transform));
+
+        yield return new WaitUntil(() => isCleared);
+
+        BossManager.Instance.OnBossDefeated -= HandleBossDefeated;
+
+        void HandleBossDefeated() => isCleared = true;
     }
 
     /// <summary>
@@ -263,6 +306,27 @@ public class FloorManager : MonoBehaviour
         box.Open(reward, () => rewardCollected = true);
 
         yield return new WaitUntil(() => rewardCollected);
+    }
+
+    /// <summary>
+    /// 층 유형에 따라 적/박스를 사전 배치한다. 보스 방은 스폰을 건너뛴다.
+    /// </summary>
+    private void PreloadFloorOrBox(int floor, FloorPositionSet set)
+    {
+        if (EnemySpawnManager.Instance.IsRewardFloor(floor))
+        {
+            if (!_boxMap.ContainsKey(floor))
+            {
+                PreloadBox(floor, set.boxSpawnPos.position);
+            }
+        }
+        else
+        {
+            if (!EnemySpawnManager.Instance.HasPendingFloor(floor))
+            {
+                EnemySpawnManager.Instance.PreloadFloor(floor, set.enemySpawnPos.position);
+            }
+        }
     }
 
     /// <summary>

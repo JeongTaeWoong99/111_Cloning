@@ -142,6 +142,16 @@ public class EnemySpawnManager : MonoBehaviour
     public bool IsRewardFloor(int floor) => GetConfigForFloor(floor).isRewardRoom;
 
     /// <summary>
+    /// 해당 층이 보스 방인지 반환한다.
+    /// </summary>
+    public bool IsBossFloor(int floor) => GetConfigForFloor(floor).isBossRoom;
+
+    /// <summary>
+    /// 해당 층의 보스 데이터를 반환한다.
+    /// </summary>
+    public BossData GetBossData(int floor) => GetConfigForFloor(floor).bossData;
+
+    /// <summary>
     /// 해당 층의 possibleRewards에서 랜덤으로 1개 반환한다.
     /// </summary>
     public Inventory.ItemData GetRewardItem(int floor)
