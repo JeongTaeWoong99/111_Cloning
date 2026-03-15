@@ -32,4 +32,12 @@ public class BossSkillData : ScriptableObject
 
     [Tooltip("SpearThrow 전용: 창 초기 속도 (m/s)")]
     public float spearThrowSpeed = 8f;
+
+    [Tooltip("SpearThrow 전용: 최소 발사 각도 (도) — 낮을수록 멀리 날아감")]
+    [Range(5f, 90f)]
+    public float spearAngleMin = 15f;
+
+    [Tooltip("SpearThrow 전용: 최대 발사 각도 (도) — 높을수록 바로 앞에 떨어짐")]
+    [Range(5f, 90f)]
+    public float spearAngleMax = 70f;
 }

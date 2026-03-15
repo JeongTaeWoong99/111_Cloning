@@ -19,6 +19,9 @@ namespace UI.OutGame
         [SerializeField, Tooltip("장비 인벤토리 패널 컨트롤러")]
         private EquipmentPanelController _equipmentPanel;
 
+        [SerializeField, Tooltip("맵 선택 패널 (2_Ingame / 3_Ingame 진입 버튼 포함)")]
+        private GameObject _mapPanel;
+
         [SerializeField, Tooltip("씬 전환 컨트롤러")]
         private SceneController _sceneController;
 
@@ -34,15 +37,16 @@ namespace UI.OutGame
         private void Start()
         {
             _defaultPanel.SetActive(true);
+            _mapPanel.SetActive(false);
         }
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.I)) // 인벤토리
+            if (Input.GetKeyDown(KeyCode.I)) // 장비 인벤토리 패널 열기
                 ToggleEquipmentPanel();
 
-            if (Input.GetKeyDown(KeyCode.T)) // 인게임 씬으로 이동
-                _sceneController?.LoadInGame();
+            if (Input.GetKeyDown(KeyCode.M)) // 맵 패널 열기
+                ToggleMapPanel();
         }
 
         // ──────────────────────────────────────────
@@ -51,24 +55,56 @@ namespace UI.OutGame
         public void ToggleEquipmentPanel()
         {
             if (_isTransitioning) return;
-            StartCoroutine(DoToggle());
+            StartCoroutine(DoToggleEquipment());
         }
 
-        private IEnumerator DoToggle()
+        public void ToggleMapPanel()
+        {
+            if (_isTransitioning) return;
+            StartCoroutine(DoToggleMap());
+        }
+
+        private IEnumerator DoToggleEquipment()
         {
             _isTransitioning = true;
 
             if (_equipmentPanel.IsOpen)
             {
-                // 장비 패널 즉시 닫기 → 카메라 이동 → 기본 패널 표시
+                // 장비 패널 닫기 → 기본 패널 표시
                 yield return _equipmentPanel.Close();
                 _defaultPanel.SetActive(true);
             }
             else
             {
-                // 기본 패널 즉시 닫기 → 카메라 이동 → 장비 패널 표시
+                // 기본 패널 닫기 → 장비 패널 표시
                 _defaultPanel.SetActive(false);
                 yield return _equipmentPanel.Open();
+            }
+
+            _isTransitioning = false;
+        }
+
+        private IEnumerator DoToggleMap()
+        {
+            _isTransitioning = true;
+
+            bool mapIsOpen = _mapPanel.activeSelf;
+
+            if (mapIsOpen)
+            {
+                // 맵 패널 닫기 → 기본 패널 표시
+                _mapPanel.SetActive(false);
+                _defaultPanel.SetActive(true);
+            }
+            else
+            {
+                // 장비 패널이 열려 있으면 먼저 닫기
+                if (_equipmentPanel.IsOpen)
+                    yield return _equipmentPanel.Close();
+
+                // 기본 패널 닫기 → 맵 패널 표시
+                _defaultPanel.SetActive(false);
+                _mapPanel.SetActive(true);
             }
 
             _isTransitioning = false;

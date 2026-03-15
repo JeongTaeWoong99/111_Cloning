@@ -104,14 +104,13 @@ public class BossAI : MonoBehaviour
     /// </summary>
     public void ApplyStagger(float duration)
     {
-        Debug.Log($"[BossAI] ApplyStagger 호출 — duration={duration:F2}, state={_currentState}");
-
         StopAllCoroutines();
         _isActionLocked = false;
         // 쿨타임은 TransitionToAttack/Skill 시작 시점에 이미 세팅·카운트 중 → 건드리지 않음
 
         _boss.Rigidbody.linearVelocity = Vector2.zero;
-        _boss.PlayIdle();
+        // PlayIdle() 제거 — Animator 비활성화 전 호출 시 해당 프레임에서 Idle t=0 색을 덮어쓰므로
+        // PauseAnimation()으로 Animator를 완전 비활성화한 뒤 SetStaggerColor()가 유지되도록 한다
         _boss.PauseAnimation();
         _boss.SetStaggerColor();
         _currentState = BossState.Idle;
@@ -134,10 +133,10 @@ public class BossAI : MonoBehaviour
     {
         _isActionLocked = true;
         yield return new WaitForSeconds(duration);
+        // ResumeAnimation()이 Animator를 재활성화하고 Idle을 재생한다
         _boss.ResumeAnimation();
         _boss.ResetColor();
         _isActionLocked = false;
-        Debug.Log("[BossAI] 경직 종료 → AI 재개");
     }
 
     /// <summary>
@@ -209,22 +208,16 @@ public class BossAI : MonoBehaviour
         if (skillReady)
         {
             if (dist <= skill.range)
-            {
-                Debug.Log("[BossAI] → Skill 발동");
                 TransitionToSkill();
-            }
             else
-            {
-                Debug.Log("[BossAI] → Skill 대기 (사거리 밖, 추격)");
                 TransitionTo(BossState.Chase);
-            }
+
             return;
         }
 
         // 스킬이 준비되지 않은 경우에만 공격 판단
         if (_attackTimer <= 0f && dist <= _boss.BossData.attackRange)
         {
-            Debug.Log("[BossAI] → Attack 발동");
             TransitionToAttack();
             return;
         }

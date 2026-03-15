@@ -127,3 +127,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ebb1bf8e352acc488b4d6e7f0a52230, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TreasureBox
+  _itemPopupPrefab: {fileID: 8956924124668524550, guid: be828c26fa57d5e4dbeec5f9e2ba94cd, type: 3}
+  _popupDuration: 0.2
+  _popupLifetime: 100
+  _popupYOffset: 4

@@ -48,8 +48,6 @@ public class BossManager : MonoBehaviour
 
         _currentBoss.Initialize(data);
         _currentBoss.OnDied += HandleBossDied;
-
-        Debug.Log($"[BossManager] 보스 사전 배치: {data.name}");
     }
 
     /// <summary>
@@ -72,8 +70,6 @@ public class BossManager : MonoBehaviour
         }
 
         _currentBossAI.Activate(playerTransform);
-
-        Debug.Log("[BossManager] 보스 AI 활성화");
     }
 
     /// <summary>
@@ -122,7 +118,5 @@ public class BossManager : MonoBehaviour
         }
 
         OnBossDefeated?.Invoke();
-
-        Debug.Log("[BossManager] 보스 사망 → OnBossDefeated 발행");
     }
 }

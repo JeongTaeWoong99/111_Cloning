@@ -21,19 +21,27 @@ public class Enemy : MonoBehaviour
     // ── Fields ────────────────────────────────────────────────────
     private static int s_deadLayer = -1;
 
-    private   Animator _animator;
-    protected float   _health;
-    protected float   _maxHealth;
-    private   int     _originalLayer;
-    private bool     _isKnockback;
-    private bool     _isDying;
+    private   Animator         _animator;
+    protected SpriteRenderer   _spriteRenderer;
+    protected Color            _normalColor = Color.white;
+    protected float            _health;
+    protected float            _maxHealth;
+    private   int              _originalLayer;
+    private   bool             _isKnockback;
+    private   bool             _isDying;
+    private   Coroutine        _hitFlashCoroutine;
+
+    private static readonly Color HitFlashColor    = new Color(3f, 3f, 3f, 1f); // HDR 흰색 — 3배 밝기로 Bloom 효과 강조
+    private const           float HitFlashDuration = 0.1f;
 
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Awake()
     {
-        Rigidbody      = GetComponent<Rigidbody2D>();
-        _animator      = GetComponent<Animator>();
-        _originalLayer = gameObject.layer;
+        Rigidbody       = GetComponent<Rigidbody2D>();
+        _animator       = GetComponent<Animator>();
+        _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        _normalColor    = _spriteRenderer != null ? _spriteRenderer.color : Color.white;
+        _originalLayer  = gameObject.layer;
 
         // 첫 인스턴스 생성 시 한 번만 레이어 번호를 캐싱
         if (s_deadLayer == -1)
@@ -46,9 +54,11 @@ public class Enemy : MonoBehaviour
     {
         // 풀 반환 시 코루틴·물리·애니메이터 상태 초기화
         StopAllCoroutines();
-        _isKnockback     = false;
-        _isDying         = false;
-        gameObject.layer = _originalLayer;
+        _isKnockback        = false;
+        _isDying            = false;
+        _hitFlashCoroutine  = null;
+        if (_spriteRenderer != null) _spriteRenderer.color = _normalColor;
+        gameObject.layer    = _originalLayer;
         _animator.Rebind();
         // _animator.Update(0f) 제거 — 비활성 오브젝트에서 호출 불가
     }
@@ -77,17 +87,51 @@ public class Enemy : MonoBehaviour
     /// </summary>
     public virtual void TakeDamage(float amount)
     {
-        if (_isDying)
-        {
-            return;
-        }
+        if (_isDying) return;
 
         _health -= amount;
 
         if (_health <= 0f)
-        {
             Die();
+        else
+            TryStartHitFlash(); // 사망하지 않은 경우에만 히트 플래시
+    }
+
+    /// <summary>진행 중인 히트 플래시를 즉시 중단한다. 스태거 등 색 우선순위가 더 높은 효과가 걸릴 때 호출한다.</summary>
+    protected void CancelHitFlash()
+    {
+        if (_hitFlashCoroutine == null) return;
+        StopCoroutine(_hitFlashCoroutine);
+        _hitFlashCoroutine = null;
+    }
+
+    /// <summary>히트 플래시를 시작한다. Boss에서 경직 여부에 따라 오버라이드한다.</summary>
+    protected virtual void TryStartHitFlash()
+    {
+        if (_hitFlashCoroutine != null) StopCoroutine(_hitFlashCoroutine);
+        _hitFlashCoroutine = StartCoroutine(HitFlashRoutine());
+    }
+
+    /// <summary>
+    /// 흰색(HDR) 플래시에서 원래 색으로 빠르게 감소시킨다.
+    /// 재질이 HDR을 지원하면 Bloom 효과로 시각적으로 두드러진다.
+    /// </summary>
+    private IEnumerator HitFlashRoutine()
+    {
+        if (_spriteRenderer == null) yield break;
+
+        _spriteRenderer.color = HitFlashColor;
+
+        float elapsed = 0f;
+        while (elapsed < HitFlashDuration)
+        {
+            elapsed += Time.deltaTime;
+            _spriteRenderer.color = Color.Lerp(HitFlashColor, _normalColor, elapsed / HitFlashDuration);
+            yield return null;
         }
+
+        _spriteRenderer.color = _normalColor;
+        _hitFlashCoroutine    = null;
     }
 
     /// <summary>

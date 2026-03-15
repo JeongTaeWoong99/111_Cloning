@@ -31,9 +31,10 @@ public class EnemySpawnManager : MonoBehaviour
     public event Action OnAllDefeated;
 
     // ── Fields ────────────────────────────────────────────────────
-    private readonly Dictionary<EnemyData, ObjectPool<Enemy>> _pools          = new();
-    private readonly Dictionary<int, List<Enemy>>             _pendingEnemies = new();
-    private          List<Enemy>                              _livingEnemies  = new();
+    private readonly Dictionary<EnemyData, ObjectPool<Enemy>> _pools               = new();
+    private readonly Dictionary<int, List<Enemy>>             _pendingEnemies      = new();
+    private readonly HashSet<Enemy>                           _currentFloorEnemies = new(); // 현재 전투 층 적만 추적 (넉백 범위 제한용)
+    private          List<Enemy>                              _livingEnemies       = new();
     private          bool                                     _isMoving;
 
     // ── MonoBehaviour ─────────────────────────────────────────────
@@ -96,10 +97,13 @@ public class EnemySpawnManager : MonoBehaviour
             return;
         }
 
+        _currentFloorEnemies.Clear();
+
         foreach (Enemy enemy in enemies)
         {
             enemy.OnDied += OnEnemyDied;
             _livingEnemies.Add(enemy);
+            _currentFloorEnemies.Add(enemy);
 
             if (_isMoving)
             {
@@ -210,6 +214,7 @@ public class EnemySpawnManager : MonoBehaviour
         }
 
         _livingEnemies.Clear();
+        _currentFloorEnemies.Clear();
 
         foreach (List<Enemy> pending in _pendingEnemies.Values)
         {
@@ -227,20 +232,27 @@ public class EnemySpawnManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 살아있는 모든 적에게 AddForce 넉백을 적용하고, duration 후 이동을 재개한다.
+    /// 현재 층 적 중 origin에서 range 이내에 있는 적에게 넉백을 적용하고, duration 후 이동을 재개한다.
     /// </summary>
-    public void KnockbackEnemies(Vector2 force, float duration)
+    public void KnockbackEnemies(Vector2 force, float duration, Vector2 origin, float range)
     {
-        StartCoroutine(KnockbackEnemiesAsync(force, duration));
+        StartCoroutine(KnockbackEnemiesAsync(force, duration, origin, range));
     }
 
-    private IEnumerator KnockbackEnemiesAsync(Vector2 force, float duration)
+    private IEnumerator KnockbackEnemiesAsync(Vector2 force, float duration, Vector2 origin, float range)
     {
-        // ApplyKnockback은 물리 충격만 적용하며 OnEnemyDied를 발생시키지 않으므로
-        // 직접 순회 가능 (역순: 혹시 모를 중간 제거에 안전)
-        for (int i = _livingEnemies.Count - 1; i >= 0; i--)
+        // 현재 층 적만 대상 — 타 층 적 제외
+        // HashSet은 순회 중 변경에 취약하므로 스냅샷 배열 복사
+        Enemy[] targets = new Enemy[_currentFloorEnemies.Count];
+        _currentFloorEnemies.CopyTo(targets);
+
+        foreach (Enemy enemy in targets)
         {
-            _livingEnemies[i].ApplyKnockback(force, duration);
+            // 패링 범위 내 적만 넉백
+            if (Mathf.Abs(enemy.transform.position.x - origin.x) <= range)
+            {
+                enemy.ApplyKnockback(force, duration);
+            }
         }
 
         yield return new WaitForSeconds(duration);
@@ -321,6 +333,7 @@ public class EnemySpawnManager : MonoBehaviour
     {
         enemy.OnDied -= OnEnemyDied;
         _livingEnemies.Remove(enemy);
+        _currentFloorEnemies.Remove(enemy);
         _pools[enemy.Data].Release(enemy);
 
         if (_livingEnemies.Count == 0)

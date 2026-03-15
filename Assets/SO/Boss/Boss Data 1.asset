@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b7384cc6abde10448407e248491863f, type: 3}
   m_Name: Boss Data 1
   m_EditorClassIdentifier: Assembly-CSharp::BossData
-  overrideController: {fileID: 22100000, guid: 959a71df4923b324ba1b0aae39374183, type: 2}
+  overrideController: {fileID: 22100000, guid: df03f271a5941234dbcad4b6a78d5c8a, type: 2}
   maxHealth: 1000
   moveSpeed: 1.5
   attackRange: 2

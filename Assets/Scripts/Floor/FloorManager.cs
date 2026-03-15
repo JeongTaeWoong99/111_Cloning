@@ -275,8 +275,6 @@ public class FloorManager : MonoBehaviour
 
         GameManager.Instance.SetState(GameState.Combat);
 
-        Debug.Log($"[FloorManager] 보스 방 진입 — floor {_currentFloor}");
-
         bool isCleared = false;
         BossManager.Instance.OnBossDefeated += HandleBossDefeated;
 

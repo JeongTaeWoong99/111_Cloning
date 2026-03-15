@@ -19,3 +19,5 @@ MonoBehaviour:
   damage: 0
   skillType: 0
   spearThrowSpeed: 0
+  spearAngleMin: 70
+  spearAngleMax: 85

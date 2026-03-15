@@ -10,9 +10,10 @@ public class SceneController : MonoBehaviour
     // ──────────────────────────────────────────
     // Private Fields
     // ──────────────────────────────────────────
-    private const int MainSceneIndex    = 0;
-    private const int OutGameSceneIndex = 1;
-    private const int InGameSceneIndex  = 2;
+    private const int MainSceneIndex     = 0;
+    private const int OutGameSceneIndex  = 1;
+    private const int InGameSceneIndex   = 2;
+    private const int InGame2SceneIndex  = 3;
 
     // ──────────────────────────────────────────
     // 씬 전환
@@ -37,6 +38,13 @@ public class SceneController : MonoBehaviour
     {
         Time.timeScale = 1f;
         SceneManager.LoadScene(InGameSceneIndex);
+    }
+
+    /// <summary>3_Ingame 씬으로 이동합니다.</summary>
+    public void LoadInGame2()
+    {
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(InGame2SceneIndex);
     }
 
     /// <summary>게임을 종료합니다. 퍼즈 상태에서 종료해도 정상 처리됩니다.</summary>

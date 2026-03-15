@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 /// <summary>
 /// 보스 개체 — Enemy를 상속하며 체력 이벤트·공격/스킬 애니메이션을 담당한다.
@@ -20,9 +21,9 @@ public class Boss : Enemy
     public event Action<float> OnHealthChanged;
 
     // ── Fields ────────────────────────────────────────────────────
-    private Animator        _bossAnimator;
-    private SpriteRenderer  _spriteRenderer;
-    private Transform       _playerTransform;
+    // _spriteRenderer, _normalColor — Enemy에서 protected로 상속
+    private Animator   _bossAnimator;
+    private Transform  _playerTransform;
 
     // ── Public Methods ────────────────────────────────────────────
     /// <summary>
@@ -39,15 +40,10 @@ public class Boss : Enemy
     public void Initialize(BossData data)
     {
         // Awake 시점에 캐싱하지 않고 최초 Initialize에서 캐싱
-        // (Enemy.Awake와 충돌 없이 안전하게 참조 획득)
+        // (_spriteRenderer는 Enemy.Awake가 이미 처리)
         if (_bossAnimator == null)
         {
             _bossAnimator = GetComponent<Animator>();
-        }
-
-        if (_spriteRenderer == null)
-        {
-            _spriteRenderer = GetComponentInChildren<SpriteRenderer>();
         }
 
         BossData   = data;
@@ -73,21 +69,27 @@ public class Boss : Enemy
     }
 
     // ── 경직 시각 효과 ────────────────────────────────────────────
-    /// <summary>Animator를 일시 정지한다. ApplyStagger에서 호출한다.</summary>
-    public void PauseAnimation()
-    {
-        _bossAnimator.speed = 0f;
-    }
+    /// <summary>경직 중 여부. 히트 플래시 스킵 판단에 사용한다.</summary>
+    public bool IsStaggered { get; private set; }
 
-    /// <summary>Animator를 재개한다. StaggerRoutine 종료 후 호출한다.</summary>
+    /// <summary>
+    /// Animator를 완전 비활성화한다. 비활성화된 Animator는 SpriteRenderer 속성을 덮어쓰지 않으므로
+    /// SetStaggerColor()로 설정한 파란색이 유지된다.
+    /// </summary>
+    public void PauseAnimation() => _bossAnimator.enabled = false;
+
+    /// <summary>Animator를 재활성화하고 Idle 클립을 재생한다. StaggerRoutine 종료 후 호출한다.</summary>
     public void ResumeAnimation()
     {
-        _bossAnimator.speed = 1f;
+        _bossAnimator.enabled = true;
+        PlayIdle();
     }
 
     /// <summary>SpriteRenderer 색을 경직 색(파랑 계열)으로 변경한다.</summary>
     public void SetStaggerColor()
     {
+        IsStaggered = true;
+        CancelHitFlash();  // 진행 중인 히트 플래시가 파란색을 덮어쓰지 않도록 선제 취소
         if (_spriteRenderer != null)
             _spriteRenderer.color = new Color(0.4f, 0.6f, 1f, 1f);
     }
@@ -95,8 +97,16 @@ public class Boss : Enemy
     /// <summary>SpriteRenderer 색을 원래대로 복원한다.</summary>
     public void ResetColor()
     {
+        IsStaggered = false;
         if (_spriteRenderer != null)
-            _spriteRenderer.color = Color.white;
+            _spriteRenderer.color = _normalColor;
+    }
+
+    /// <summary>경직 중에는 히트 플래시를 무시한다 — 경직 색(파랑)이 우선.</summary>
+    protected override void TryStartHitFlash()
+    {
+        if (!IsStaggered)
+            base.TryStartHitFlash();
     }
 
     // ── 애니메이션 래퍼 ───────────────────────────────────────────
@@ -141,14 +151,22 @@ public class Boss : Enemy
     // ── Private Methods ───────────────────────────────────────────
     private void SpawnSpears()
     {
-        float  speed  = BossData.skill.spearThrowSpeed;
-        float  damage = BossData.skill.damage;
-        // 45도 각도로 좌우 투척
-        Vector2 leftVel  = new Vector2(-speed * 0.707f, speed * 0.707f);
-        Vector2 rightVel = new Vector2( speed * 0.707f, speed * 0.707f);
+        BossSkillData skill  = BossData.skill;
+        float         speed  = skill.spearThrowSpeed;
+        float         damage = skill.damage;
+        
+        for (int i = 0; i < 2; i++)
+        {
+            // 최소~최대 범위에서 랜덤 각도 1개 선택
+            float rad  = Random.Range(skill.spearAngleMin, skill.spearAngleMax) * Mathf.Deg2Rad;
 
-        SpawnSpear(leftVel,  damage);
-        SpawnSpear(rightVel, damage);
+            // 플레이어가 왼쪽에 있으면 왼쪽, 오른쪽에 있으면 오른쪽
+            float dirX = (_playerTransform != null && _playerTransform.position.x < transform.position.x)
+                ? -1f : 1f;
+
+            Vector2 vel = new Vector2(dirX * speed * Mathf.Cos(rad), speed * Mathf.Sin(rad));
+            SpawnSpear(vel, damage);
+        }
     }
 
     private void SpawnSpear(Vector2 velocity, float damage)

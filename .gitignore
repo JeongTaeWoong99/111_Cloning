@@ -79,3 +79,4 @@ crashlytics-build.properties
 
 # 에셋 원본 (외부 공개 금지)
 /[Aa]ssets/Source/
+/[Aa]ssets/Prefabs/Origin/

@@ -36,6 +36,16 @@ public class PlayerCombat : MonoBehaviour
     [SerializeField, Tooltip("S 패링 무적 시간 (초)")]
     private float _parryInvincibleDuration = 0.25f;
 
+    // ── Properties ───────────────────────────────────────────────
+    /// <summary>S 패링 쿨타임 잔여 시간. 0이면 즉시 사용 가능.</summary>
+    public float ParryCooldownRemaining => Mathf.Max(0f, _parryCooldown - _parryTimer);
+
+    /// <summary>D 대쉬 쿨타임 잔여 시간. 0이면 즉시 사용 가능.</summary>
+    public float DashCooldownRemaining => Mathf.Max(0f, _dashCooldown - _dashTimer);
+
+    /// <summary>패링 차단 범위. PlayerBoundaryHandler 넉백 거리 제한에 사용.</summary>
+    public float ParryRange => _parryInterruptRange;
+
     // ── Fields ────────────────────────────────────────────────────
     private bool      _isAttacking;
     private bool      _isDashing;
@@ -45,14 +55,22 @@ public class PlayerCombat : MonoBehaviour
 
     private PlayerAnimator _playerAnimator;
 
+    // ── Singleton ─────────────────────────────────────────────────
+    public static PlayerCombat Instance { get; private set; }
+
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Awake()
     {
+        Instance        = this;
         _playerAnimator = GetComponent<PlayerAnimator>();
     }
 
     private void Update()
     {
+        // 쿨타임은 timeScale > 0이면 항상 진행 (층 이동·등장 중에도 감소)
+        _parryTimer += Time.deltaTime;
+        _dashTimer  += Time.deltaTime;
+
         GameState state = GameManager.Instance.CurrentState;
 
         // 사망 중(Die 애니메이션 ~ GameOver 전환 사이) 또는 전투 입력 중단 상태
@@ -72,8 +90,6 @@ public class PlayerCombat : MonoBehaviour
         {
             return;
         }
-
-        _parryTimer += Time.deltaTime;
 
         HandleAttack();
         HandleDash();
@@ -145,8 +161,6 @@ public class PlayerCombat : MonoBehaviour
 
     private void HandleDash()
     {
-        _dashTimer += Time.deltaTime;
-
         if (_isDashing)                    return;  // 대쉬 애니메이션 중 재대쉬 방지
         if (PlayerMover.Instance.IsMoving) return;
         if (!Input.GetKeyDown(KeyCode.D))  return;
@@ -203,6 +217,7 @@ public class PlayerCombat : MonoBehaviour
 
         // Pinned 상태에서도 보스 경직·무적 적용
         TryInterruptBoss();
+        TryDestroyNearbySpears();
         PlayerBoundaryHandler.Instance.Counterattack();
     }
 
@@ -219,6 +234,7 @@ public class PlayerCombat : MonoBehaviour
         StopAttack();
 
         TryInterruptBoss(); // 보스 경직 시도 (결과 무관하게 계속 진행)
+        TryDestroyNearbySpears();
         PlayerBoundaryHandler.Instance.CounterattackSkill();
     }
 
@@ -227,44 +243,39 @@ public class PlayerCombat : MonoBehaviour
     /// </summary>
     private bool TryInterruptBoss()
     {
-        if (BossManager.Instance == null)
-        {
-            Debug.Log("[TryInterruptBoss] BossManager 없음");
-            return false;
-        }
+        // BossManager가 없으면 보스 방이 아님
+        if (BossManager.Instance == null) return false;
 
-        if (!BossManager.Instance.IsBossInAction)
-        {
-            Debug.Log("[TryInterruptBoss] 보스가 Action 중이 아님 (Attack/Skill 아님)");
-            return false;
-        }
+        // 보스가 Attack/Skill 중이 아니면 패링 대상 없음
+        if (!BossManager.Instance.IsBossInAction) return false;
 
         Boss boss = BossManager.Instance.CurrentBoss;
-        if (boss == null)
-        {
-            Debug.Log("[TryInterruptBoss] CurrentBoss null");
-            return false;
-        }
-
-        if (boss.IsDying)
-        {
-            Debug.Log("[TryInterruptBoss] 보스 사망 중 — 패링 무시");
-            return false;
-        }
+        // 보스 참조가 없거나 사망 중이면 패링 무시
+        if (boss == null || boss.IsDying) return false;
 
         float dist = Mathf.Abs(transform.position.x - boss.transform.position.x);
-        Debug.Log($"[TryInterruptBoss] 보스 거리={dist:F2}, 범위={_parryInterruptRange:F2}");
 
-        if (dist > _parryInterruptRange)
-        {
-            Debug.Log("[TryInterruptBoss] 범위 초과 → 실패");
-            return false;
-        }
+        // 범위 초과 시 패링 실패
+        if (dist > _parryInterruptRange) return false;
 
-        Debug.Log("[TryInterruptBoss] 패링 성공 → 경직 적용");
+        // 경직 적용 + 무적 부여
         BossManager.Instance.StaggerBoss(_staggerDuration);
         PlayerHealth.Instance.SetInvincible(_parryInvincibleDuration);
         return true;
+    }
+
+    /// <summary>
+    /// 패링 범위(_parryInterruptRange) 내에 날아오는 창이 있으면 모두 제거한다.
+    /// </summary>
+    private void TryDestroyNearbySpears()
+    {
+        BossSpear[] spears = FindObjectsByType<BossSpear>(FindObjectsSortMode.None);
+        foreach (BossSpear spear in spears)
+        {
+            float dist = Mathf.Abs(spear.transform.position.x - transform.position.x);
+            if (dist <= _parryInterruptRange)
+                spear.DestroyByParry();
+        }
     }
 
     private void HandleSkill()
@@ -312,6 +323,13 @@ public class PlayerCombat : MonoBehaviour
         return nearest;
     }
 
+    private void OnDrawGizmos()
+    {
+        // 패링 범위 — 항상 표시되는 원형 (파랑)
+        Gizmos.color = new Color(0.3f, 0.5f, 1f, 0.8f);
+        Gizmos.DrawWireSphere(transform.position, _parryInterruptRange);
+    }
+
     private void OnDrawGizmosSelected()
     {
         // ── 공격 범위 (빨강) ──────────────────────────────────────
@@ -321,36 +339,6 @@ public class PlayerCombat : MonoBehaviour
         Gizmos.DrawCube(attackCenter, attackSize);
         Gizmos.color = new Color(1f, 0f, 0f, 0.8f);
         Gizmos.DrawWireCube(attackCenter, attackSize);
-
-        // ── S 패링 차단 범위 (파랑 그리드) ───────────────────────
-        float r  = _parryInterruptRange;
-        float h  = 2f;   // 범위 박스 높이
-        int   xDiv = 4;  // X 방향 분할 수
-        int   yDiv = 2;  // Y 방향 분할 수
-        Vector3 origin = transform.position;
-
-        // 채운 사각형
-        Gizmos.color = new Color(0.3f, 0.5f, 1f, 0.15f);
-        Gizmos.DrawCube(origin, new Vector3(r * 2f, h, 0f));
-
-        // 테두리 + 내부 그리드 선
-        Gizmos.color = new Color(0.3f, 0.5f, 1f, 0.9f);
-
-        // 세로 분할선
-        for (int i = 0; i <= xDiv; i++)
-        {
-            float x = origin.x - r + r * 2f * i / xDiv;
-            Gizmos.DrawLine(new Vector3(x, origin.y - h * 0.5f, 0f),
-                            new Vector3(x, origin.y + h * 0.5f, 0f));
-        }
-
-        // 가로 분할선
-        for (int j = 0; j <= yDiv; j++)
-        {
-            float y = origin.y - h * 0.5f + h * j / yDiv;
-            Gizmos.DrawLine(new Vector3(origin.x - r, y, 0f),
-                            new Vector3(origin.x + r, y, 0f));
-        }
     }
 
     // ── 애니메이션 이벤트 타겟 ─────────────────────────────────────

@@ -72,7 +72,7 @@ public class PlayerBoundaryHandler : MonoBehaviour
 
     // ── Public Methods ────────────────────────────────────────────
     /// <summary>
-    /// S키 반격 — 플레이어는 앞으로 점프, 적은 45도 방향으로 넉백.
+    /// S키 반격 — 플레이어는 앞으로 점프, 패링 범위 내 적은 45도 방향으로 넉백.
     /// </summary>
     public void Counterattack()
     {
@@ -83,35 +83,54 @@ public class PlayerBoundaryHandler : MonoBehaviour
 
         // 45도 방향 = (right + up).normalized
         Vector2 knockbackDir = (Vector2.right + Vector2.up).normalized;
+        float   range        = PlayerCombat.Instance.ParryRange;
 
-        PlayerMover.Instance.Launch(
-            knockbackDir * _playerLaunchForce, _playerLaunchDuration);
+        PlayerMover.Instance.Launch(knockbackDir * _playerLaunchForce, _playerLaunchDuration);
 
         EnemySpawnManager.Instance.KnockbackEnemies(
-            knockbackDir * _knockbackForce, _knockbackDuration);
+            knockbackDir * _knockbackForce, _knockbackDuration,
+            transform.position, range);
 
-        // 보스 방에서도 넉백 적용
-        BossManager.Instance?.KnockbackBoss(knockbackDir * _knockbackForce, _knockbackDuration);
+        KnockbackBossIfInRange(knockbackDir * _knockbackForce, range);
 
         StartCoroutine(ClearLaunchFlag());
     }
 
     /// <summary>
-    /// Combat 중 S키 스킬 — 시간 정지 없이 Launch + 적 넉백만 수행.
+    /// Combat 중 S키 스킬 — 시간 정지 없이 Launch + 패링 범위 내 적 넉백만 수행.
     /// </summary>
     public void CounterattackSkill()
     {
         if (_isLaunching) return;
         _isLaunching = true;
 
-        Vector2 dir = (Vector2.right + Vector2.up).normalized;
-        PlayerMover.Instance.Launch(dir * _playerLaunchForce, _playerLaunchDuration);
-        EnemySpawnManager.Instance.KnockbackEnemies(dir * _knockbackForce, _knockbackDuration);
+        Vector2 dir   = (Vector2.right + Vector2.up).normalized;
+        float   range = PlayerCombat.Instance.ParryRange;
 
-        // 보스 방에서도 넉백 적용
-        BossManager.Instance?.KnockbackBoss(dir * _knockbackForce, _knockbackDuration);
+        PlayerMover.Instance.Launch(dir * _playerLaunchForce, _playerLaunchDuration);
+
+        EnemySpawnManager.Instance.KnockbackEnemies(
+            dir * _knockbackForce, _knockbackDuration,
+            transform.position, range);
+
+        KnockbackBossIfInRange(dir * _knockbackForce, range);
 
         StartCoroutine(ClearLaunchFlag());
+    }
+
+    // 보스가 패링 범위 내에 있을 때만 넉백
+    private void KnockbackBossIfInRange(Vector2 force, float range)
+    {
+        if (BossManager.Instance == null) return;
+
+        Boss boss = BossManager.Instance.CurrentBoss;
+        if (boss == null || boss.IsDying) return;
+
+        float dist = Mathf.Abs(boss.transform.position.x - transform.position.x);
+        if (dist <= range)
+        {
+            BossManager.Instance.KnockbackBoss(force, _knockbackDuration);
+        }
     }
 
     private IEnumerator ClearLaunchFlag()

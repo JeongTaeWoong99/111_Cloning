@@ -50,6 +50,10 @@ public class PlayerSkillHandler : MonoBehaviour
     [SerializeField]
     private LayerMask _enemyLayer;
 
+    // ── Properties ───────────────────────────────────────────────
+    /// <summary>F 스킬 쿨타임 잔여 시간. 0이면 즉시 사용 가능.</summary>
+    public float SkillCooldownRemaining => Mathf.Max(0f, _skillCooldown - _skillTimer);
+
     // ── Fields ────────────────────────────────────────────────────
     // float.MaxValue: 시작 시 쿨다운 없이 즉시 사용 가능
     private float       _skillTimer  = float.MaxValue;
@@ -129,7 +133,6 @@ public class PlayerSkillHandler : MonoBehaviour
         for (int i = 0; i < _arrowCount; i++)
         {
             GameObject obj = ObjectPoolManager.Instance.Get("RainArrow");
-            Debug.Log("ExecuteArrowRain() => "+ obj.name);
                 
             if (obj != null && obj.TryGetComponent(out Arrow arrow))
             {

@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!221 &22100000
+AnimatorOverrideController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Boss Animator Override Controller 2
+  m_Controller: {fileID: 9100000, guid: f48751b26f672e04aae3b35345cec6f9, type: 2}
+  m_Clips:
+  - m_OriginalClip: {fileID: 7400000, guid: 3f3acfe26986e4f48bd9ecf2c9f2f6ce, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 6c997e7bdb62930478db1b06f622ab4a, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 5d4c73644efd8a24aafe7b385ec94de7, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: b5ab9bb1da6781448afa25546d112f40, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: ffb06c62f24c8b649803ed8f2e4e124e, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: c9c80e0544a614e4a9c60f2978fc61ff, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: ca137f58fe1e2244b940dfac563cc28d, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 72abb0d318acf764d8d05036cc77f4f7, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 6882d582a3d74ec4185ac849872d8ccc, type: 2}
+    m_OverrideClip: {fileID: 7400000, guid: 31cd5c55b48f2d24a920940fd14fdccc, type: 2}
