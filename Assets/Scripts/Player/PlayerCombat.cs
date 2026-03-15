@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Inventory;
 using UnityEngine;
 
 /// <summary>
@@ -10,9 +11,7 @@ public class PlayerCombat : MonoBehaviour
 {
     // ── Serialized Fields ─────────────────────────────────────────
     [Header("공격")]
-    [SerializeField, Tooltip("공격 범위 (m)")]
-    [Range(1f, 10f)]
-    private float _attackRange = 3f;
+    private float _attackRange = 3f;  // CharacterData.attackRange에서 초기화
 
     [SerializeField] private LayerMask _enemyLayer;
 
@@ -63,6 +62,15 @@ public class PlayerCombat : MonoBehaviour
     {
         Instance        = this;
         _playerAnimator = GetComponent<PlayerAnimator>();
+
+        PlayerInventory.Instance.OnCharacterChanged += ApplyAttackRange;
+        ApplyAttackRange();
+    }
+
+    private void OnDestroy()
+    {
+        if (PlayerInventory.Instance != null)
+            PlayerInventory.Instance.OnCharacterChanged -= ApplyAttackRange;
     }
 
     private void Update()
@@ -98,6 +106,12 @@ public class PlayerCombat : MonoBehaviour
     }
 
     // ── Private Methods ───────────────────────────────────────────
+    private void ApplyAttackRange()
+    {
+        CharacterData ch = PlayerInventory.Instance?.SelectedCharacter;
+        if (ch != null) _attackRange = ch.attackRange;
+    }
+
     private void HandleAttack()
     {
         // 대쉬 중 또는 이미 공격 코루틴 실행 중이면 무시

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f027b8384a54d9438a1c90cd4e2225d, type: 3}
   m_Name: W_Spear_1
   m_EditorClassIdentifier: Assembly-CSharp::Inventory.ItemData
-  displayName: W_Spear_1
+  displayName: Tier1 Spear
   type: 0
   icon: {fileID: 21300000, guid: d5dd6f86e04fc994da46118bb6a567c2, type: 3}
   attackBonus: 1

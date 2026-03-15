@@ -17,6 +17,7 @@ MonoBehaviour:
   baseAttack: 9
   baseHealth: 4
   baseAttackSpeed: 1
+  attackRange: 3
   skillName: Clone
   skillDescription: Gain a clone equal to 50% of attack power for 10 seconds
   skillSprite: {fileID: 21300000, guid: 835919401f538eb42b06914372123e8e, type: 3}

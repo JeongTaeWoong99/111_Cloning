@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f027b8384a54d9438a1c90cd4e2225d, type: 3}
   m_Name: W_Sword_3
   m_EditorClassIdentifier: Assembly-CSharp::Inventory.ItemData
-  displayName: W_Sword_3
+  displayName: Tier3 Sword
   type: 0
   icon: {fileID: 21300000, guid: f378b36b7452d974c8fb49aba32cbb11, type: 3}
   attackBonus: 3

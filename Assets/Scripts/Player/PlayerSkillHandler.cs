@@ -13,8 +13,7 @@ public class PlayerSkillHandler : MonoBehaviour
 
     // ── Serialized Fields ─────────────────────────────────────────
     [Header("스킬 공통")]
-    [SerializeField, Tooltip("스킬 쿨다운 (초)"), Range(1f, 30f)]
-    private float _skillCooldown = 10f;
+    private float _skillCooldown = 10f;  // CharacterData.skillCooldown에서 초기화
 
     [SerializeField, Tooltip("스킬 전 연출 대기 (초) — 추후 반짝 이펙트 타이밍"), Range(0f, 2f)]
     private float _skillDelay = 0.5f;
@@ -63,11 +62,26 @@ public class PlayerSkillHandler : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
+        PlayerInventory.Instance.OnCharacterChanged += ApplySkillCooldown;
+        ApplySkillCooldown();
+    }
+
+    private void OnDestroy()
+    {
+        if (PlayerInventory.Instance != null)
+            PlayerInventory.Instance.OnCharacterChanged -= ApplySkillCooldown;
     }
 
     private void Update() => _skillTimer += Time.deltaTime;
 
     // ── Public Methods ────────────────────────────────────────────
+    private void ApplySkillCooldown()
+    {
+        CharacterData ch = PlayerInventory.Instance?.SelectedCharacter;
+        if (ch != null) _skillCooldown = ch.skillCooldown;
+    }
+
     /// <summary>
     /// F키 입력 시 PlayerCombat에서 호출. 쿨다운 미충족 시 무시.
     /// </summary>

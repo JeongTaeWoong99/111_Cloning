@@ -1,5 +1,6 @@
 using Inventory;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace UI
@@ -11,7 +12,7 @@ namespace UI
     [RequireComponent(typeof(DraggableUI))]
     [RequireComponent(typeof(CanvasGroup))]
     [RequireComponent(typeof(Image))]
-    public class ItemUI : MonoBehaviour
+    public class ItemUI : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
         // ──────────────────────────────────────────
         // Private Fields
@@ -34,6 +35,18 @@ namespace UI
         // ──────────────────────────────────────────
         // Public Methods
         // ──────────────────────────────────────────
+
+        // ── 툴팁 ──────────────────────────────────────────────────────
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            if (Data != null)
+                ItemTooltipUI.Instance.Show(Data, transform.position);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            ItemTooltipUI.Instance.Hide();
+        }
 
         /// <summary>아이템 데이터를 설정하고 아이콘 스프라이트를 갱신합니다.</summary>
         public void Initialize(ItemData data)

@@ -17,7 +17,9 @@ MonoBehaviour:
   baseAttack: 6
   baseHealth: 3
   baseAttackSpeed: 1
+  attackRange: 0
   skillName: Arrow rain
   skillDescription: I rain down 20 arrows
   skillSprite: {fileID: 21300000, guid: 83da52182bc637e498b2e0da38d233a7, type: 3}
+  skillCooldown: 5
   overrideController: {fileID: 22100000, guid: 1db0f390b32736e4bbca587f9346c8dd, type: 2}

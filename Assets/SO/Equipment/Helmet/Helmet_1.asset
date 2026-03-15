@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f027b8384a54d9438a1c90cd4e2225d, type: 3}
   m_Name: Helmet_1
   m_EditorClassIdentifier: Assembly-CSharp::Inventory.ItemData
-  displayName: Helmet_1
+  displayName: Tier1 Helmet
   type: 2
   icon: {fileID: 21300000, guid: 886903da49fc1504983dfd57e947e958, type: 3}
   attackBonus: 1

@@ -50,9 +50,9 @@ namespace UI
             if (_nameText != null)
                 _nameText.text = ch != null ? ch.characterName : "";
 
-            _atkText.text   = $"ATK: {PlayerStats.Instance.TotalAttack}";
-            _hpText.text    = $"HP: {PlayerStats.Instance.TotalHealth}";
-            _speedText.text = $"SPD: {PlayerStats.Instance.AttackInterval:F4}";
+            _atkText.text   = $"ATK : {PlayerStats.Instance.TotalAttack}";
+            _hpText.text    = $"HP : {PlayerStats.Instance.TotalHealth}";
+            _speedText.text = $"SPD : {PlayerStats.Instance.AttackInterval:F2}/s";
 
             // Debug.Log($"[StatsPanelUI] 갱신 → SPD: {PlayerStats.Instance.AttackInterval:F4}s"
             //         + $" (공속배율: {PlayerStats.Instance.TotalAttackSpeed:F3})");

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7f027b8384a54d9438a1c90cd4e2225d, type: 3}
   m_Name: Ring_1
   m_EditorClassIdentifier: Assembly-CSharp::Inventory.ItemData
-  displayName: Ring_1
+  displayName: Tier1 Ring
   type: 3
   icon: {fileID: 21300000, guid: 4c5f319ab93b6be468cff8fff593c35e, type: 3}
   attackBonus: 1

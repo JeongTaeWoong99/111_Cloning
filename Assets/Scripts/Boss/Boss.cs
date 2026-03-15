@@ -91,7 +91,7 @@ public class Boss : Enemy
         IsStaggered = true;
         CancelHitFlash();  // 진행 중인 히트 플래시가 파란색을 덮어쓰지 않도록 선제 취소
         if (_spriteRenderer != null)
-            _spriteRenderer.color = new Color(0.4f, 0.6f, 1f, 1f);
+            _spriteRenderer.color = new Color(0.5f, 0.8f, 3f, 1f);
     }
 
     /// <summary>SpriteRenderer 색을 원래대로 복원한다.</summary>

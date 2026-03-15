@@ -14,11 +14,18 @@ public class CharacterData : ScriptableObject
     public int   baseHealth;
     public float baseAttackSpeed = 1f;  // 1.0 = 기본, 2.0 = 2배속
 
+    [Header("전투")]
+    [Tooltip("근접 공격 판정 거리 (m). 창병 > 검병.")]
+    public float attackRange = 3f;
+
+
     [Header("스킬")]
     public string skillName;
     [TextArea(2, 4)]
     public string skillDescription;
     public Sprite skillSprite;
+    [Tooltip("스킬 쿨다운 (초).")]
+    public float skillCooldown = 10f;
 
     [Header("애니메이션")]
     [Tooltip("캐릭터 고유 애니메이터 오버라이드 컨트롤러")]

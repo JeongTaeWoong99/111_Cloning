@@ -92,9 +92,14 @@ public class Enemy : MonoBehaviour
         _health -= amount;
 
         if (_health <= 0f)
+        {
+            TryStartHitFlash(); // 한방 사망 시에도 히트 플래시 표시
             Die();
+        }
         else
-            TryStartHitFlash(); // 사망하지 않은 경우에만 히트 플래시
+        {
+            TryStartHitFlash();
+        }
     }
 
     /// <summary>진행 중인 히트 플래시를 즉시 중단한다. 스태거 등 색 우선순위가 더 높은 효과가 걸릴 때 호출한다.</summary>
