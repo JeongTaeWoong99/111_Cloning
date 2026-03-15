@@ -9,9 +9,9 @@ AnimatorOverrideController:
   m_Name: Enemy_Override_Controller_2
   m_Controller: {fileID: 9100000, guid: 5559322b80c0070439864f5007319628, type: 2}
   m_Clips:
-  - m_OriginalClip: {fileID: 7400000, guid: 115364631d9b8274a90c8d58a2e4346d, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 02f9c08f2a571e749924d16186bd4ec5, type: 2}
     m_OverrideClip: {fileID: 7400000, guid: 4ec66c3df5d479146ae92459e5507e0f, type: 2}
-  - m_OriginalClip: {fileID: 7400000, guid: 887e448a9c556ae41978f3989b1e5e09, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 60c8533e40f392d4cbf2e7fcf60e9bc1, type: 2}
     m_OverrideClip: {fileID: 7400000, guid: 061c6683a3061ae4fa7e03e1734ed4f2, type: 2}
-  - m_OriginalClip: {fileID: 7400000, guid: 4d104f0b81af87a4abf0b8796ff0bdb5, type: 2}
+  - m_OriginalClip: {fileID: 7400000, guid: 657e6870f7e720d4f8e2aeccd0c0b148, type: 2}
     m_OverrideClip: {fileID: 7400000, guid: 5ac99f596c2a13c4392a6167e309281f, type: 2}

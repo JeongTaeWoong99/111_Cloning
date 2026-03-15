@@ -15,6 +15,10 @@ public class PlayerBoundaryHandler : MonoBehaviour
     [Range(-5f, 5f)]
     private float _boundaryXOffset = 0f;
 
+    [Header("이펙트")]
+    [SerializeField, Tooltip("S키 반격 이펙트 프리팹")]
+    private GameObject _counterattackEffectPrefab;
+
     [Header("반격")]
     [SerializeField, Tooltip("반격 시 적 넉백 충격량")]
     [Range(1f, 20f)]
@@ -78,6 +82,7 @@ public class PlayerBoundaryHandler : MonoBehaviour
     {
         _isPinned    = false;
         _isLaunching = true;
+        SpawnCounterattackEffect();
         // SetState(Combat)이 timeScale=1을 복원 → 물리 자동 재개
         GameManager.Instance.SetState(GameState.Combat);
 
@@ -103,6 +108,7 @@ public class PlayerBoundaryHandler : MonoBehaviour
     {
         if (_isLaunching) return;
         _isLaunching = true;
+        SpawnCounterattackEffect();
 
         Vector2 dir   = (Vector2.right + Vector2.up).normalized;
         float   range = PlayerCombat.Instance.ParryRange;
@@ -116,6 +122,12 @@ public class PlayerBoundaryHandler : MonoBehaviour
         KnockbackBossIfInRange(dir * _knockbackForce, range);
 
         StartCoroutine(ClearLaunchFlag());
+    }
+
+    private void SpawnCounterattackEffect()
+    {
+        if (_counterattackEffectPrefab != null)
+            Destroy(Instantiate(_counterattackEffectPrefab, transform.position, Quaternion.identity), 2f);
     }
 
     // 보스가 패링 범위 내에 있을 때만 넉백

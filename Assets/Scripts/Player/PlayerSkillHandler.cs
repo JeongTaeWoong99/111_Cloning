@@ -1,6 +1,8 @@
 using System.Collections;
 using Inventory;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 /// <summary>
 /// 플레이어 스킬(F키) 실행 핸들러.
@@ -21,6 +23,9 @@ public class PlayerSkillHandler : MonoBehaviour
     [Header("Slash (Sword)")]
     [SerializeField, Tooltip("전방 히트박스 너비 (m)"), Range(1f, 10f)]
     private float _slashRange = 4f;
+
+    [SerializeField, Tooltip("검병 슬래시 히트 이펙트 프리팹")]
+    private GameObject _slashEffectPrefab;
 
     [Header("Arrow Rain (Bow)")]
     [SerializeField, Tooltip("발사 화살 수"), Range(5, 30)]
@@ -45,6 +50,13 @@ public class PlayerSkillHandler : MonoBehaviour
     [SerializeField, Tooltip("플레이어 기준 Clone 스폰 오프셋")]
     private Vector2 _cloneSpawnOffset = new Vector2(-1.5f, 0f);
 
+    [Header("스킬 연출")]
+    [SerializeField, Tooltip("Color Adjustments가 포함된 Volume")]
+    private Volume _postProcessVolume;
+
+    [SerializeField, Tooltip("스킬 사용 시 플레이어 위치에 생성되는 이펙트 프리팹")]
+    private GameObject _skillEffectPrefab;
+
     [Header("공통 레이어")]
     [SerializeField]
     private LayerMask _enemyLayer;
@@ -55,13 +67,21 @@ public class PlayerSkillHandler : MonoBehaviour
 
     // ── Fields ────────────────────────────────────────────────────
     // float.MaxValue: 시작 시 쿨다운 없이 즉시 사용 가능
-    private float       _skillTimer  = float.MaxValue;
-    private PlayerClone _activeClone;
+    private float            _skillTimer  = float.MaxValue;
+    private PlayerClone      _activeClone;
+    private ColorAdjustments _colorAdjustments;  // 캐싱 — 매 스킬마다 TryGet 방지
 
     // ── MonoBehaviour ─────────────────────────────────────────────
     private void Awake()
     {
         Instance = this;
+
+        // Color Adjustments 캐싱 + 초기 비활성 (스킬 연출 중에만 켜진다)
+        if (_postProcessVolume != null &&
+            _postProcessVolume.profile.TryGet(out _colorAdjustments))
+        {
+            _colorAdjustments.active = false;
+        }
 
         PlayerInventory.Instance.OnCharacterChanged += ApplySkillCooldown;
         ApplySkillCooldown();
@@ -109,11 +129,14 @@ public class PlayerSkillHandler : MonoBehaviour
     /// </summary>
     private IEnumerator ExecuteSlash()
     {
-        // Skill 상태(timeScale=0)로 전체 freeze
-        GameManager.Instance.SetState(GameState.Skill);
-        yield return new WaitForSecondsRealtime(_skillDelay);
-        // 판정 실행 전 Combat 복귀(timeScale=1)
-        GameManager.Instance.SetState(GameState.Combat);
+        yield return StartCoroutine(PlaySkillCinematic());
+
+        // 슬래시 이펙트 — 히트박스 중앙에 스폰
+        if (_slashEffectPrefab != null)
+        {
+            Vector3 effectPos = transform.position + Vector3.right * (_slashRange * 0.5f);
+            Destroy(Instantiate(_slashEffectPrefab, effectPos, Quaternion.identity), 2f);
+        }
 
         float   damage    = PlayerStats.Instance.TotalAttack * 2f;
         Vector2 boxCenter = (Vector2)transform.position + Vector2.right * (_slashRange * 0.5f);
@@ -133,11 +156,7 @@ public class PlayerSkillHandler : MonoBehaviour
     /// </summary>
     private IEnumerator ExecuteArrowRain()
     {
-        // Skill 상태(timeScale=0)로 전체 freeze
-        GameManager.Instance.SetState(GameState.Skill);
-        yield return new WaitForSecondsRealtime(_skillDelay);
-        // 판정 실행 전 Combat 복귀(timeScale=1)
-        GameManager.Instance.SetState(GameState.Combat);
+        yield return StartCoroutine(PlaySkillCinematic());
 
         float damage  = PlayerStats.Instance.TotalAttack;
         float xStart  = transform.position.x - _arrowRainXLeft;
@@ -172,11 +191,7 @@ public class PlayerSkillHandler : MonoBehaviour
             yield break;
         }
 
-        // Skill 상태(timeScale=0)로 전체 freeze
-        GameManager.Instance.SetState(GameState.Skill);
-        yield return new WaitForSecondsRealtime(_skillDelay);
-        // 소환 전 Combat 복귀(timeScale=1)
-        GameManager.Instance.SetState(GameState.Combat);
+        yield return StartCoroutine(PlaySkillCinematic());
 
         // 기존 클론이 살아있으면 제거 — 중복 생성 방지
         if (_activeClone != null)
@@ -186,6 +201,33 @@ public class PlayerSkillHandler : MonoBehaviour
         _activeClone = Instantiate(_clonePrefab, transform);
         _activeClone.transform.localPosition = _cloneSpawnOffset;
         _activeClone.Initialize(PlayerStats.Instance.TotalAttack * 0.5f, _enemyLayer);
+    }
+
+    // ── 스킬 공통 연출 ─────────────────────────────────────────────
+
+    /// <summary>
+    /// 모든 스킬 공통 연출 시퀀스.
+    /// Color Adjustments 켜기 → freeze → 이펙트 스폰 → 대기 → 이펙트 제거 → Color Adjustments 끄기.
+    /// </summary>
+    private IEnumerator PlaySkillCinematic()
+    {
+        // Color Adjustments 켜기 (플레이어는 Overlay Camera 덕분에 제외됨)
+        if (_colorAdjustments != null) _colorAdjustments.active = true;
+
+        // 스킬 이펙트 스폰
+        GameObject effect = null;
+        if (_skillEffectPrefab != null)
+            effect = Instantiate(_skillEffectPrefab, transform.position, Quaternion.identity);
+
+        GameManager.Instance.SetState(GameState.Skill);         // timeScale = 0
+        yield return new WaitForSecondsRealtime(_skillDelay);
+        GameManager.Instance.SetState(GameState.Combat);        // timeScale = 1
+
+        // 이펙트 제거
+        if (effect != null) Destroy(effect);
+
+        // Color Adjustments 끄기
+        if (_colorAdjustments != null) _colorAdjustments.active = false;
     }
 
     // ── Gizmos ────────────────────────────────────────────────────

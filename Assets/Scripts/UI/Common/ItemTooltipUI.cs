@@ -59,7 +59,7 @@ namespace UI
             _speedText.text  = "+" + data.attackSpeedBonus.ToString() + "%";
 
             // 아이템 아이콘 바로 위에 고정
-            _rect.position = itemScreenPos + new Vector2(0f, 250f);
+            _rect.position = itemScreenPos + new Vector2(0f, 275f);
 
             gameObject.SetActive(true);
         }

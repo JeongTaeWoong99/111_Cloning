@@ -39,13 +39,13 @@ namespace UI
         // ── 툴팁 ──────────────────────────────────────────────────────
         public void OnPointerEnter(PointerEventData eventData)
         {
-            if (Data != null)
+            if (Data != null && ItemTooltipUI.Instance != null)
                 ItemTooltipUI.Instance.Show(Data, transform.position);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            ItemTooltipUI.Instance.Hide();
+            ItemTooltipUI.Instance?.Hide();
         }
 
         /// <summary>아이템 데이터를 설정하고 아이콘 스프라이트를 갱신합니다.</summary>

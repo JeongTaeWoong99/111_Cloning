@@ -18,3 +18,9 @@ MonoBehaviour:
     percent: 100
   - data: {fileID: 11400000, guid: 636f88133e5325049979e85b7e14bcbc, type: 2}
     percent: 0
+  - data: {fileID: 11400000, guid: 25a28998922a67d46be9e352cd5bec52, type: 2}
+    percent: 0.03
+  isRewardRoom: 0
+  possibleRewards: []
+  isBossRoom: 0
+  bossData: {fileID: 0}
