@@ -18,7 +18,10 @@
       "Bash(done)",
       "Bash(find:*)",
       "Bash(python:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(grep -iE \"\\\\.\\(bat|cmd|com|cpl|exe|adp|chm|hta|jse|lnk|js|mde|scr|msc|pif|sct|shb|vb|vbe|wsc|wsh|ade|cer|crt|der|gadget|hip|inf|mad|maf|vds|wsf|msi|msp|mst|jar|bas|mag|mam|maq|mar|mas|mat|mau|mav|maw|mda|mdb|mdt|mdw|mdz|reg|scf|shs|ps1|ps1xml|ps2|ps2xml|psc1|psc2|url|grp|xbap|ocx|nsh|sys|vxd|jnlp\\)$\")",
+      "Bash(xargs -I {} find {} -type f -o -type d)",
+      "Bash(curl:*)"
     ]
   }
 }

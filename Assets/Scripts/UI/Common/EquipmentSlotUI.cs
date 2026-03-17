@@ -51,8 +51,14 @@ namespace UI
             if (_cachedItem != null && _cachedItem != itemUI)
                 Destroy(_cachedItem.gameObject);  // 기존 아이템 파괴 (중복 방지)
             _cachedItem = itemUI;
-            itemUI.transform.SetParent(transform);
-            itemUI.transform.localPosition = Vector3.zero;
+            itemUI.transform.SetParent(transform, false);
+
+            // 슬롯 크기에 꽉 차도록 stretch 설정
+            RectTransform rt = itemUI.GetComponent<RectTransform>();
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = Vector2.zero;
+            rt.offsetMax = Vector2.zero;
         }
 
         /// <summary>슬롯의 아이템 UI를 제거하고 캐시를 초기화합니다.</summary>
