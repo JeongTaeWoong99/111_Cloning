@@ -19,7 +19,7 @@
         <tr><td>역할</td><td>클라이언트 개발</td></tr>
         <tr><td>도구</td><td>Unity, C#</td></tr>
         <tr><td>타겟 기기</td><td>PC</td></tr>
-        <tr><td>레퍼런스</td><td>Tower Breaker</td></tr>
+        <tr><td>레퍼런스</td><td><a href="https://play.google.com/store/apps/details?id=com.percent.towerbreaker&hl=ko">Tower Breaker</a></td></tr>
       </table>
   </tr>
 </table>
